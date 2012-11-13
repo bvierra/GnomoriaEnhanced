@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ProfessionsExport>
+  <ExportProperties>
+    <DateTime>2012-11-08T13:36:23.813895-08:00</DateTime>
+    <GEVersion>0.0.2.0</GEVersion>
+    <GnomoriaVersion>0.8.18.0</GnomoriaVersion>
+  </ExportProperties>
+  <Professions>
+    <Profession name="Miner">
+      <Skill name="Mining">true</Skill>
+      <Skill name="Masonry">true</Skill>
+      <Skill name="Stonecarving">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Woodcutter">
+      <Skill name="WoodCutting">true</Skill>
+      <Skill name="Carpentry">true</Skill>
+      <Skill name="Woodcarving">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Farmer">
+      <Skill name="Weaving">true</Skill>
+      <Skill name="Tailoring">true</Skill>
+      <Skill name="Horticulture">true</Skill>
+      <Skill name="Farming">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Rancher">
+      <Skill name="Leatherworking">true</Skill>
+      <Skill name="AnimalHusbandry">true</Skill>
+      <Skill name="Cooking">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Builder">
+      <Skill name="Construction">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Blacksmith">
+      <Skill name="Smelting">true</Skill>
+      <Skill name="Blacksmithing">true</Skill>
+      <Skill name="Metalworking">true</Skill>
+      <Skill name="WeaponCrafting">true</Skill>
+      <Skill name="ArmorCrafting">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Engineer">
+      <Skill name="Tinkering">true</Skill>
+      <Skill name="Machining">true</Skill>
+      <Skill name="Engineering">true</Skill>
+      <Skill name="Mechanic">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Jeweler">
+      <Skill name="GemCutting">true</Skill>
+      <Skill name="JewelryMaking">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Soldier">
+      <Skill name="Medic">true</Skill>
+      <Skill name="Caretaker">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Cook">
+      <Skill name="Butchery">true</Skill>
+      <Skill name="Cooking">true</Skill>
+      <Skill name="Brewing">true</Skill>
+      <Skill name="Medic">true</Skill>
+      <Skill name="Caretaker">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+    <Profession name="Medic">
+      <Skill name="Medic">true</Skill>
+      <Skill name="Caretaker">true</Skill>
+      <Skill name="LaborEnd">true</Skill>
+    </Profession>
+  </Professions>
+</ProfessionsExport>
