@@ -38,6 +38,7 @@ namespace GnomoriaEnhanced.UI
         // Other Forms
         private World.ProfessionsModifyForm _professionsModifyForm;
         private World.GnomesSkills _gnomesSkills;
+        private World.GnomesSkillsCombat _gnomesSkillsCombat;
         #endregion
 
         #region WorldForm
@@ -125,8 +126,12 @@ namespace GnomoriaEnhanced.UI
 
                         break;
                     case 1:
-                        _parent.Info("Professions Modify selected");
+                        _parent.Info("Gnomes skills Modify selected");
                         this.GnomesSkills();
+                        break;
+                    case 2:
+                        _parent.Info("Gnomes combat skills selected");
+                        this.GnomesSkillsCombat();
                         break;
                     default:
 
