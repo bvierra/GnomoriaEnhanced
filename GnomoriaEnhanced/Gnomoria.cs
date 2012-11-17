@@ -87,7 +87,6 @@ namespace GnomoriaEnhanced
             string subKey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
             RegistryKey uninstallKey = baseRegistryKey.OpenSubKey(subKey);
             string[] allApplications = uninstallKey.GetSubKeyNames();
-            _parent.Debug("Before allApplications");
             foreach (string applicationSubKeyName in allApplications)
             {
                 RegistryKey appKey = baseRegistryKey.OpenSubKey(subKey + "\\" + applicationSubKeyName);
