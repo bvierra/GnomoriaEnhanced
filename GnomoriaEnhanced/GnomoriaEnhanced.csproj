@@ -104,6 +104,12 @@
     <Compile Include="UI\WorldForm.Designer.cs">
       <DependentUpon>WorldForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\World\GnomeSkillsCombat.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\World\GnomeSkillsCombat.Designer.cs">
+      <DependentUpon>GnomeSkillsCombat.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\World\GnomesSkills.cs">
       <SubType>Form</SubType>
     </Compile>

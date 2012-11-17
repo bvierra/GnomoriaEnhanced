@@ -208,6 +208,16 @@ namespace GnomoriaEnhanced.UI
 
             _gnomesSkills.Show();
         }
+
+        private void GnomesSkillsCombat()
+        {
+            if (_gnomesSkillsCombat == null)
+            {
+                _gnomesSkillsCombat = new World.GnomesSkillsCombat(this);
+            }
+
+            _gnomesSkillsCombat.Show();
+        }
         #endregion
 
         #region Profession Group
