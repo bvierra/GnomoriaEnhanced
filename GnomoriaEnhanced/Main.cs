@@ -157,8 +157,14 @@ namespace GnomoriaEnhanced
         }
         #endregion
 
-
-        
+        #region Debug
+        public void MemoryUsage()
+        {
+            long usage = GC.GetTotalMemory(true);
+            usage = (usage / 1024L) / 1024L;
+            this.Debug(String.Format("Total Memory: {0:0.00}mb", usage));
+        }
+        #endregion
 
 
     }

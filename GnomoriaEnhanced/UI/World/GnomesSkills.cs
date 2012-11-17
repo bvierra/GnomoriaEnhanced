@@ -50,7 +50,7 @@ namespace GnomoriaEnhanced.UI.World
         {
             e.Cancel = true;
             this.Hide();
-            MemoryUsage();
+            _parent.MemoryUsage();
         }
 
         private void Form_Show(object sender, EventArgs e)
