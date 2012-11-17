@@ -86,12 +86,8 @@ namespace GnomoriaEnhanced.UI.World
                 int a = 2;
                 foreach (CharacterSkillType skill in _professionSkillList)
                 {
-                    //_parent.Debug(String.Format(" * [{0}] {1}: {2}", a, skill, profession.AllowedSkills.IsSkillAllowed(skill)));
                     dataGridView.Rows[i].Cells[a].Value = profession.AllowedSkills.IsSkillAllowed(skill);
                     dataGridView.Rows[i].Cells[a].Tag = skill;
-                    //DataGridViewCheckBoxCell chkCell = (DataGridViewCheckBoxCell)dataGridView.Rows[i].Cells[a];
-                    //chkCell = (DataGridViewCheckBoxCell)dataGridView.Rows[i].Cells[a];
-                    //chkCell.
                     a++;
                 }
                 i++;
