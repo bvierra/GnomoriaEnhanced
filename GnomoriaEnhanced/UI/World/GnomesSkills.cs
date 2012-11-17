@@ -24,6 +24,7 @@ namespace GnomoriaEnhanced.UI.World
         private bool _loaded;
 
         private DataTable mCharSkills;
+        private bool _needReload;
         #endregion
 
         #region Form
@@ -189,15 +190,12 @@ namespace GnomoriaEnhanced.UI.World
         
         #endregion 
 
-        #region Debug
-        private void MemoryUsage()
+        #region Accessors
+        public bool NeedReload
         {
-            long usage = GC.GetTotalMemory(true);
-            usage = (usage / 1024L) / 1024L;
-            _parent.Debug(String.Format("Total Memory: {0:0.00}mb", usage));
+            get { return _needReload; }
+            set { _needReload = true; }
         }
         #endregion
-
-        
     }
 }
