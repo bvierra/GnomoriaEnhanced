@@ -19,33 +19,35 @@ namespace GnomoriaEnhanced
     {
         #region Variables
 
-        // Variables
+        // Options loaded from the Gnomoria Enhanced.exe.config file
         private bool optLogging;
         private bool optBackup;
-        private bool optAutoLoadSave;
-        private string optAutoLoadSaveGame;
+        private bool optAutoLoadSavedGame;
+        private string optAutoLoadSavedGamePath;
 
         private int _skillColStart = 4;
         private int _statColStart = 2;
 
-        private Gnomoria gnomoria;
+        private GameModel gnomoria;
         private string saveFolderPath;
         private string _gnomoriaBaseFolder;
         private string _gnomoriaSaveBackupFolder;
         private Font dataGridViewCharSkillsHeaderFont;
-        private bool _loadGameFailed = false;
-        private string _errorMessage;
-        private string _loadedSaveGame;
+        private string _loadErrorMessage;
+        private string _loadedSavedGameName;
         
+        // Status variables
+        private bool _settingsVerified = false;
+        private bool _gameModelInitialized = false;
+        private bool _savedGameLoaded = false;
+
         // Log Tab
-        private System.Windows.Forms.TabPage tabLog;
-        private System.Windows.Forms.ListBox lbLog;
         private ListBoxLog listBoxLog;
 
         // Background workers
         private BackgroundWorker _workerInitialize;
         private BackgroundWorker _workerLoadGame;
-        private FileSystemWatcher _FSWatcher = new FileSystemWatcher();
+        private FileSystemWatcher _savedGameWatcher = null;
 
         #endregion
 
@@ -57,16 +59,11 @@ namespace GnomoriaEnhanced
             Console.WriteLine("Option Logging: {0}", optLogging);
             optBackup = Properties.Settings.Default.Backup;
             Console.WriteLine("Option Backup: {0}", optBackup);
-            optAutoLoadSave = Properties.Settings.Default.AutoLoadSave;
-            Console.WriteLine("Option AutoLoadSave: {0}", optAutoLoadSave);
-            optAutoLoadSaveGame = Properties.Settings.Default.AutoLoadSaveGame;
+            optAutoLoadSavedGame = Properties.Settings.Default.AutoLoadSave;
+            Console.WriteLine("Option AutoLoadSave: {0}", optAutoLoadSavedGame);
+            optAutoLoadSavedGamePath = Properties.Settings.Default.AutoLoadSaveGame;
 
             InitializeComponent();     
-
-            // Not Ready so don't show
-            lblTabOverviewDate.Visible = false;
-            lblTabOverviewKingdomName.Visible = false;
-            lblTabOverviewTotalWorth.Visible = false;
         }
 
         public void Main_Load(object sender, System.EventArgs e)
@@ -84,49 +81,29 @@ namespace GnomoriaEnhanced
                 dataGridViewCharSkills, 
                 new object[] { true });
 
-            // Setup UI for Initialization
-            openToolStripMenuItem.Enabled = false;
-            log(LogLevel.Info, "Starting Initialization");
-            this.toolStripStatusLabel.Text = "Initializing...";
+            // Verify the game settings and display a warning message if something is wrong.
+            VerifyGnomoriaSettings();
+            
+            // Initialize the Gnomoria game model
+            // Note: Using parameter force = false to do nothing if the game settings were KO.
+            InitializeGameModel(false);
 
-            // Initializes Gnomoria in a new thread
-            _workerInitialize = new BackgroundWorker();
-            _workerInitialize.DoWork += new DoWorkEventHandler(this.Initialize_DoWork);
-            _workerInitialize.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.Initialize_RunWorkerCompleted);
-            _workerInitialize.RunWorkerAsync();
-
-            // Waits for Gnomoria to Initialize before continuing
-            while (this._workerInitialize.IsBusy)
-            {
-                this.toolStripProgressBar.Increment(1);
-                Application.DoEvents();
-                Thread.Sleep(250);
-            }
-            log(LogLevel.Info, "Initialization Complete");
+            // Reset menu items according to status
+            ResetMenuItems();
         }
 
         public void Main_Shown(object sender, System.EventArgs e)
         {
-
-            if (optAutoLoadSave && optAutoLoadSaveGame != null)
+            if (optAutoLoadSavedGame && optAutoLoadSavedGamePath != null)
             {
-                log(LogLevel.Info, "Auto loading world: " + optAutoLoadSaveGame);
+                log(LogLevel.Info, "Auto loading world: " + optAutoLoadSavedGamePath);
                 openToolStripMenuItem.Enabled = false;
-                LoadGame(optAutoLoadSaveGame);
+                LoadGame(optAutoLoadSavedGamePath);
             }
 
-            // Setup _FSWatcher
-            _FSWatcher.SynchronizingObject = this;
-            _FSWatcher.Path = gnomoria.getSaveGameFolder();
-            _FSWatcher.Filter = "*.sav";
-            _FSWatcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.CreationTime;
-            _FSWatcher.Changed += new FileSystemEventHandler(saveGame_Modified);
-            _FSWatcher.Created += new FileSystemEventHandler(saveGame_Modified);
-            _FSWatcher.Deleted += new FileSystemEventHandler(saveGame_Modified);
-            _FSWatcher.Renamed += new RenamedEventHandler(saveGame_Renamed);
-            _FSWatcher.EnableRaisingEvents = true;
+            // Initialize the background FileSystemWatcher in charge of monitoring saved games.
+            InitializeSavedGameWatcher();
 
-            
         }
         #endregion
 
@@ -142,7 +119,7 @@ namespace GnomoriaEnhanced
             if (openDlg.ShowDialog() == DialogResult.OK)
             {
                 log(LogLevel.Info, "Opening Game: " + openDlg.SafeFileName.ToString());
-                _loadedSaveGame = openDlg.SafeFileName;
+                _loadedSavedGameName = openDlg.SafeFileName;
                 LoadGame(openDlg.SafeFileName);
             }
         }
@@ -158,12 +135,12 @@ namespace GnomoriaEnhanced
             if (logToolStripMenuItem.Checked)
             {
                 a = "Enabled";
-                this.tabControl.Controls.Add(this.tabLog);
+                listBox1.Visible = true;
             }
             else
             {
                 a = "Disabled";
-                this.tabControl.Controls.Remove(this.tabLog);
+                listBox1.Visible = false;
             }
 
             log(LogLevel.Debug,"Log mode has been changed to: " + a);
@@ -171,20 +148,43 @@ namespace GnomoriaEnhanced
 
         private void autoBackupSavedGamesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
-            string a;
             if (autoBackupSavedGamesToolStripMenuItem.Checked)
             {
-                a = "Enabled";
+                log(LogLevel.Debug, "Auto backup mode has been enabled.");
                 optBackup = true;
+
+                // Activate the saved game watcher if it was not active already.
+                // Note: if the game model is not correctly initialized, this will reset optBackup to false.
+                InitializeSavedGameWatcher();
             }
             else
             {
-                a = "Disabled";
+                log(LogLevel.Debug, "Auto backup mode has been disabled.");
                 optBackup = false;
             }
-
-            log(LogLevel.Debug, "Auto backup mode has been " + a);
         }
+
+        private void initializeGameModelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Force game model initialization
+            InitializeGameModel(true);
+
+            // Try to start the saved game watcher
+            InitializeSavedGameWatcher();
+
+            // Update menu items accordingly.
+            ResetMenuItems();
+        }
+
+        /// <summary>
+        /// Reset the active/inactive state of menu items based on the application status.
+        /// </summary>
+        private void ResetMenuItems()
+        {
+            initializeGameModelToolStripMenuItem.Enabled = !_gameModelInitialized;
+            openToolStripMenuItem.Enabled = _gameModelInitialized;
+        }
+
         #endregion
 
         #region Button Clicks
@@ -202,17 +202,19 @@ namespace GnomoriaEnhanced
 
         private void Initialize_DoWork(object sender, DoWorkEventArgs e)
         {
-            gnomoria = new Gnomoria();            
+            gnomoria = new GameModel();            
             Result res = gnomoria.Initialize();
-            if (res.Success == false)
+            if (res.Success == true)
             {
-                log(LogLevel.Error,"[Main] gnomoria.Initialize Failed with error: " + res.ErrorMessage);
+                saveFolderPath = gnomoria.getSavedGameFolder();
+                _gnomoriaBaseFolder = gnomoria.getSettingsFolder();
+                Directory.CreateDirectory(_gnomoriaBaseFolder + @"BackupWorlds");
+                _gnomoriaSaveBackupFolder = _gnomoriaBaseFolder + @"BackupWorlds";
+                log(LogLevel.Debug, "Ensured that backup folder (" + _gnomoriaSaveBackupFolder + ") exists");
             }
-            saveFolderPath = gnomoria.getSaveGameFolder();
-            _gnomoriaBaseFolder = gnomoria.getSettingsFolder();
-            Directory.CreateDirectory(_gnomoriaBaseFolder + @"BackupWorlds");
-            _gnomoriaSaveBackupFolder = _gnomoriaBaseFolder + @"BackupWorlds";
-            log(LogLevel.Debug, "Ensured that backup folder (" + _gnomoriaSaveBackupFolder + ") exists");
+
+            // Pass Result object as e.Result to the sender object.
+            e.Result = new Result(res.Success, res.ErrorMessage);
         }
 
         private void Initialize_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -220,11 +222,20 @@ namespace GnomoriaEnhanced
             toolStripProgressBar.Value = 100;
             if (e.Error == null)
             {
-                log(LogLevel.Info,"gnomoria.Initialize Completed without incident");
+                Result res = e.Result as Result;
+                if (res.Success == true)
+                {
+                    log(LogLevel.Info, "Game model initialization completed.");
+                    _gameModelInitialized = true;
+                }
+                else
+                {
+                    log(LogLevel.Error, "Game model initialization failed: " + res.ErrorMessage);
+                    log(LogLevel.Error, "Advice: verify that you are running GnomoriaEnhanced from the Gnomoria directory!");
+
+                    _gameModelInitialized = false;
+                }
             }
-            this.toolStripProgressBar.Value = 0;
-            this.toolStripStatusLabel.Text = "Please load a game to start";
-            this.openToolStripMenuItem.Enabled = true;
         }
         
 
@@ -240,8 +251,7 @@ namespace GnomoriaEnhanced
             {
                 log(LogLevel.Error,"[Main] LoadGame_DoWork failed at gnomoria.LoadGame with message: " + res.ErrorMessage);
                 e.Result = "Failed: " + res.ErrorMessage;
-                _loadGameFailed = true;
-                _errorMessage = res.ErrorMessage;
+                _loadErrorMessage = res.ErrorMessage;
             }
             else
             {
@@ -251,8 +261,7 @@ namespace GnomoriaEnhanced
                 {
                     log(LogLevel.Error,"[Main] LoadGame_DoWork failed at gnomoria.Load_Character_Skills with message: " + res2.ErrorMessage);
                     e.Result = "Failed: " + res2.ErrorMessage;
-                    _loadGameFailed = true;
-                    _errorMessage = res2.ErrorMessage;
+                    _loadErrorMessage = res2.ErrorMessage;
                 }
                 else
                 {
@@ -262,8 +271,11 @@ namespace GnomoriaEnhanced
                     {
                         log(LogLevel.Error, "[Main] LoadGame_DoWork failed at gnomoria.Load_Character_Stats with message: " + res3.ErrorMessage);
                         e.Result = "Failed: " + res3.ErrorMessage;
-                        _loadGameFailed = true;
-                        _errorMessage = res3.ErrorMessage;
+                        _loadErrorMessage = res3.ErrorMessage;
+                    }
+                    else
+                    {
+                        _savedGameLoaded = true;
                     }
                 }
             }
@@ -292,6 +304,94 @@ namespace GnomoriaEnhanced
         #region Tabs
         // Tab Loading
 
+        /// <summary>
+        /// Load a saved game from the disk and update the displayed information. Uses a background worker.
+        /// </summary>
+        /// <param name="savedGame">Saved game file name, relative to the Saved game directory</param>
+        private void LoadGame(string savedGame)
+        {
+            // Reset status variable
+            _savedGameLoaded = false;
+
+            // Stop here if the game model is not initialized yet.
+            if (_gameModelInitialized == false)
+            {
+                log(LogLevel.Warning, "Can't load saved game " + savedGame + " before the game model has been initialized.");
+                return;
+            }
+
+            log(LogLevel.Info, "Loading Game: " + savedGame);
+            this.toolStripStatusLabel.Text = "Loading Game: " + savedGame;
+            this.toolStripProgressBar.Value = 0;
+
+            // Clear up old saved game
+            if (dataGridViewCharSkills.DataSource != null)
+            {
+                dataGridViewCharSkills.DataSource = null;
+            }
+
+            if (dataGridViewCharStats.DataSource != null)
+            {
+                dataGridViewCharStats.DataSource = null;
+            }
+
+            // Setup Background Worker
+            _workerLoadGame = new BackgroundWorker();
+            _workerLoadGame.DoWork += new DoWorkEventHandler(this.LoadGame_DoWork);
+            _workerLoadGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.LoadGame_RunWorkerCompleted);
+            _workerLoadGame.ProgressChanged += new ProgressChangedEventHandler(LoadGame_ProgressChanged);
+            _workerLoadGame.WorkerReportsProgress = true;
+            _workerLoadGame.RunWorkerAsync(savedGame);
+
+            while (this._workerLoadGame.IsBusy)
+            {
+                this.toolStripProgressBar.Increment(1);
+                Application.DoEvents();
+                Thread.Sleep(250);
+            }
+
+            // The worker will update the _savedGameLoaded status variable on success
+            if (_savedGameLoaded == true)
+            {
+                tabPageOverview_Load();
+                tabCharStats_Load();
+                tabCharSkills_Load();
+
+                log(LogLevel.Info, "Game Loaded");
+                this.tabControl.SelectedTab = tabCharSkills;
+            }
+            else
+            {
+                // Loading the game failed - Display error message and exit program
+                // TODO: Figure out how to fix OutOfMemoryException
+                Console.WriteLine("ERROR: {0}", _loadErrorMessage);
+
+                string errorMsg;
+
+                if (_loadErrorMessage == "Exception of type 'System.OutOfMemoryException' was thrown.")
+                {
+                    errorMsg = "Loading saved game failed with the following error:\n" + _loadErrorMessage
+                        + "\n\n"
+                        + "This is usually caused by editing the game and enlarging the ore";
+                }
+                else
+                {
+                    errorMsg = "Loading saved game failed with the following error:\n" + _loadErrorMessage;
+                }
+
+                MessageBox.Show(errorMsg,
+                        "Error loading saved game",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Exclamation,
+                        MessageBoxDefaultButton.Button1);
+
+                Application.Exit();
+            }
+        }
+
+        /// <summary>
+        /// Initialize the Character Skills tab. Called by LoadGame().
+        /// </summary>
         public void tabCharSkills_Load()
         {
             this.tabCharSkills.Show();
@@ -323,6 +423,9 @@ namespace GnomoriaEnhanced
             tabCharSkills.Show();
         }
 
+        /// <summary>
+        /// Initialize the Character Stats tab. Called by LoadGame().
+        /// </summary>
         public void tabCharStats_Load()
         {
             this.tabCharStats.Show();
@@ -350,14 +453,16 @@ namespace GnomoriaEnhanced
 
         }
 
+        /// <summary>
+        /// Initialize the Kingdom overview tab. Called by LoadGame().
+        /// </summary>
         public void tabPageOverview_Load()
         {
-            //Dictionary<string, string> overview = gnomoria.getKingdomOverview();
+            Dictionary<string, string> overview = gnomoria.getKingdomOverview();
 
-            //lblTabOverviewKingdomNameValue.Text = overview["KingdomName"];
-            //lblTabOverviewTotalWorth.Text = overview["TotalWorth"];
-            //lblTabOverviewDateValue.Text = overview["GameDate"];
-            lblTabOverviewKingdomNameValue.Text = "Loaded Game: " + _loadedSaveGame;
+            lblTabOverviewKingdomNameValue.Text = overview["KingdomName"] + " (File: " + _loadedSavedGameName + ")";
+            lblTabOverviewTotalWorthValue.Text  = overview["TotalWealth"];
+            lblTabOverviewDateValue.Text        = overview["GameDate"];
         }
         #endregion
 
@@ -462,104 +567,185 @@ namespace GnomoriaEnhanced
         }
         #endregion
 
-        #region Random Methods
-        // Random Methods
+        #region Initialization Methods
 
-        private void LoadGame(string saveGame)
+        /// <summary>
+        /// Use a background Worker thread to initialize the GnomanEmpire object used to manipulate saved games. 
+        /// This method will do nothing is the _configVerified flag is false, unless the forceInit parameter is true.
+        /// </summary>        
+        private void InitializeGameModel(bool forceInit)
         {
-            log(LogLevel.Info, "Loading Game: " + saveGame);
-            this.toolStripStatusLabel.Text = "Loading Game: " + saveGame;
-            this.toolStripProgressBar.Value = 0;
-
-            // Clear up old save game
-            if (dataGridViewCharSkills.DataSource != null)
+            if (_settingsVerified == false) 
             {
-                dataGridViewCharSkills.DataSource = null;
+                if (forceInit == false)
+                {
+                    log(LogLevel.Warning, "Not attempting to initialize the game model because Gnomoria settings verification failed.");
+                    return;
+                }
+                else
+                {
+                    log(LogLevel.Warning, "Forcing initilization of the game model.");
+                }
             }
 
-            if (dataGridViewCharStats.DataSource != null)
+            if (_gameModelInitialized)
             {
-                dataGridViewCharStats.DataSource = null;
+                log(LogLevel.Warning, "Not attempting to initialize the game model because that's already done.");
+                return;
             }
 
-            // Setup Background Worker
-            _workerLoadGame = new BackgroundWorker();
-            _workerLoadGame.DoWork += new DoWorkEventHandler(this.LoadGame_DoWork);
-            _workerLoadGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.LoadGame_RunWorkerCompleted);
-            _workerLoadGame.ProgressChanged += new ProgressChangedEventHandler(LoadGame_ProgressChanged);
-            _workerLoadGame.WorkerReportsProgress = true;
-            _workerLoadGame.RunWorkerAsync(saveGame);
+            // Setup UI for Initialization
+            openToolStripMenuItem.Enabled = false;
+            log(LogLevel.Info, "Starting initialization of the game model.");
+            this.toolStripStatusLabel.Text = "Initializing...";
 
-            while (this._workerLoadGame.IsBusy)
+            // Initializes Gnomoria in a new thread
+            _workerInitialize = new BackgroundWorker();
+            _workerInitialize.DoWork += new DoWorkEventHandler(this.Initialize_DoWork);
+            _workerInitialize.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.Initialize_RunWorkerCompleted);
+            _workerInitialize.RunWorkerAsync();
+
+            // Waits for Gnomoria game model to Initialize before continuing
+            while (this._workerInitialize.IsBusy)
             {
                 this.toolStripProgressBar.Increment(1);
                 Application.DoEvents();
                 Thread.Sleep(250);
             }
 
-            if (!_loadGameFailed)
+            // The worker will update the _gameModelInitialized flag
+            if (this._gameModelInitialized)
             {
-                tabPageOverview_Load();
-                tabCharStats_Load();
-                tabCharSkills_Load();
-                
-                log(LogLevel.Info, "Game Loaded");
-                this.tabControl.SelectedTab = tabCharSkills;
+                this.toolStripProgressBar.Value = 0;
+                this.toolStripStatusLabel.Text = "Please load a game to start";
             }
-            else
+
+            ResetMenuItems();
+        }
+
+        /// <summary>
+        /// Verify if the Gnomoria settings are compatible with the execution of the GE program.
+        /// Will set (or reset) the _configVerified flag and update the UI accordingly.
+        /// </summary>
+        private void VerifyGnomoriaSettings()
+        {
+            // Reset status flag
+            this._settingsVerified = false;
+            this.toolStripStatusLabel.Text = "Checking Gnomoria settings...";
+
+            // Open Gnomoria configuration file in My Documents\My Games\Gnomoria\settings.ini
+            String settingsFilePath = Microsoft.VisualBasic.FileIO.SpecialDirectories.MyDocuments + "\\My Games\\Gnomoria\\settings.ini";
+
+            // If the config file can't be found, return an failed status.
+            if (File.Exists(settingsFilePath) == false)
             {
-                // Loading the game failed - Display error message and exit program
-                // TODO: Figure out how to fix OutOfMemoryException
-                Console.WriteLine("ERROR: {0}", _errorMessage);
+                lblTabOverviewVerifConfigValue.Text = "Cannot find Gnomoria settings file.";
+                log(LogLevel.Error, "Cannot find Gnomoria settings file " + settingsFilePath);
+                return;
+            }
 
-                string errorMsg;
+            // Verify the "Full Screen Mode" setting. If enabled, Gnomoria Enhanced displays a blank screen when initializing the GnomanEmpire class.
+            IniFile settingsFile = new IniFile(settingsFilePath);
+            String mode = settingsFile.IniReadValue("Display", "FullScreenMode");
+            if (mode.Equals("0") == false)
+            {
+                log(LogLevel.Warning, "It is advised to configure Gnomoria in Windowed mode.");
+                log(LogLevel.Warning, "When in Full Screen Mode, the screen will turn blank when initializing the game model.");
+                // This is a warning only, continue to test other settings.
+            }
 
-                if (_errorMessage == "Exception of type 'System.OutOfMemoryException' was thrown.")
+            // At this point, everything is fine, set status variable and label text.
+            log(LogLevel.Info, "Checked Gnomoria settings in " + settingsFilePath + ", OK.");
+
+            this._settingsVerified = true;
+            this.lblTabOverviewVerifConfigValue.Text = "Settings OK!";
+            this.toolStripStatusLabel.Text = "Gnomoria settings OK!";
+            ResetMenuItems();
+        }
+
+        #endregion
+
+        #region AutoBackup
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitializeSavedGameWatcher()
+        {
+            // Setup the saved game watcher.
+            if (_gameModelInitialized)
+            {
+                if (_savedGameWatcher == null)
                 {
-                    errorMsg = "Loading saved game failed with the following error:\n" + _errorMessage
-                        + "\n\n"
-                        + "This is usually caused by editing the game and enlarging the ore";
+                    _savedGameWatcher = new FileSystemWatcher();
+                    _savedGameWatcher.SynchronizingObject = this;
+                    _savedGameWatcher.Path = gnomoria.getSavedGameFolder();
+                    _savedGameWatcher.Filter = "*.sav";
+                    _savedGameWatcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.CreationTime;
+                    _savedGameWatcher.Changed += new FileSystemEventHandler(savedGame_Modified);
+                    _savedGameWatcher.Created += new FileSystemEventHandler(savedGame_Modified);
+                    _savedGameWatcher.Deleted += new FileSystemEventHandler(savedGame_Modified);
+                    _savedGameWatcher.Renamed += new RenamedEventHandler(savedGame_Renamed);
+                    _savedGameWatcher.EnableRaisingEvents = true;
+                    log(LogLevel.Info, "[AutoBackup] Saved game watcher running.");
                 }
                 else
                 {
-                    errorMsg = "Loading saved game failed with the following error:\n" + _errorMessage;
+                    log(LogLevel.Debug, "[AutoBackup] Saved game watcher already running, skipped.");
                 }
+            }
+            else
+            {
+                log(LogLevel.Warning, "[AutoBackup] Cannot initialize the saved game watcher because the game model is not initialized yet.");
+            }
 
-                MessageBox.Show(errorMsg,
-                        "Error loading saved game",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Exclamation,
-                        MessageBoxDefaultButton.Button1);
+            // Reset the auto backup icon if it was not possible to initialize the saved game watcher.
+            autoBackupSavedGamesToolStripMenuItem.Checked = (_savedGameWatcher != null);
+        }
 
-                Application.Exit();
+        private void savedGame_Modified(object sender, FileSystemEventArgs e)
+        {
+            log(LogLevel.Debug, "[AutoBackup] File: " + e.FullPath + " " + e.ChangeType);
+            if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                if (optBackup)
+                {
+                    log(LogLevel.Info, "[AutoBackup] File: " + e.Name + " has been Changed (most likely a new save)");
+                    string dir = e.Name.Split('.')[0];
+                    string worldDir = _gnomoriaSaveBackupFolder + @"\" + dir;
+                    Directory.CreateDirectory(worldDir);
+
+                    DateTime dt = DateTime.Now;
+                    string filename = String.Format("{0:yyyyMMddHHmmss}", dt);
+                    filename = filename + ".sav";
+                    
+                    log(LogLevel.Debug, "[AutoBackup] Copying Save from: " + e.FullPath + " to: " + worldDir + "\\" + filename);
+                    System.IO.File.Copy(e.FullPath, worldDir + "\\" + filename, true);
+                    log(LogLevel.Info, "[AutoBackup] Backup complete");
+                }
+                else
+                {
+                    log(LogLevel.Debug, "[AutoBackup] Ignoring saved game update because auto backup is disabled.");
+                }
             }
         }
 
+        private void savedGame_Renamed(object sender, RenamedEventArgs e)
+        {
+            log(LogLevel.Debug, "[AutoBackup] File: " + e.OldFullPath + " renamed to " + e.FullPath);
+        }
+
+        #endregion
+
+        #region Log methods
+        /// <summary>
+        /// Create and initialize the ListBoxLog component and add it to listBox1.
+        /// </summary>
         private void Load_Debug()
         {
             Console.WriteLine("DEBUG MODE INITIALIZING");
-            this.tabLog = new System.Windows.Forms.TabPage();
-            this.lbLog = new System.Windows.Forms.ListBox();
 
-            // 
-            // tabLog
-            // 
-            this.tabLog.Controls.Add(this.lbLog);
-            this.tabLog.Name = "tabLog";
-            this.tabLog.Text = "Log";
-            this.tabLog.UseVisualStyleBackColor = true;
-
-            // 
-            // lbLog
-            // 
-            this.lbLog.BackColor = System.Drawing.SystemColors.Window;
-            this.lbLog.FormattingEnabled = true;
-            this.lbLog.Name = "lbLog";
-            this.lbLog.TabStop = false;
-            this.lbLog.Dock = System.Windows.Forms.DockStyle.Fill;
-
-            listBoxLog = new ListBoxLog(lbLog, "{4} [{5}] : {8}", optLogging);
-
+            listBoxLog = new ListBoxLog(listBox1, "{4} [{5}] : {8}", optLogging);
 
             if (optLogging)
             {
@@ -569,56 +755,24 @@ namespace GnomoriaEnhanced
             }
         }
 
+        /// <summary>
+        /// Log a message into the log list box (which might be visible or not).
+        /// </summary>
+        /// <param name="level">One of the LogLevel values.</param>
+        /// <param name="message">The message to display.</param>
         private void log(GnomoriaEnhanced.UI.LogLevel level, string message)
         {
             listBoxLog.Log(level, message);
         }
-        #endregion
 
-        #region FSWatcher
-        private void saveGame_Modified(object sender, FileSystemEventArgs e)
-        {
-            log(LogLevel.Debug, "[FSWatcher] File: " + e.FullPath + " " + e.ChangeType);
-            if (e.ChangeType == WatcherChangeTypes.Changed)
-            {
-                log(LogLevel.Info, "[FSWatcher] File: " + e.Name + " has been Changed (most likely a new save)");
-                if (optBackup)
-                {
-                    log(LogLevel.Debug, "[FSWatcher] Save Game: " + e.Name);
-                    string dir = e.Name.Split('.')[0];
-                    string worldDir = _gnomoriaSaveBackupFolder + @"\" + dir;
-                    Directory.CreateDirectory(worldDir);
-
-                    DateTime dt = DateTime.Now;
-                    string filename = String.Format("{0:yyyyMMddHHmmss}", dt);
-                    filename = filename + ".sav";
-                    log(LogLevel.Debug, "[FSWatcher] File Name: " + filename);
-
-                    log(LogLevel.Debug, "[FSWatcher] Copying Save from: " + e.FullPath + " to: " + worldDir + "\\" + filename);
-                    System.IO.File.Copy(e.FullPath, worldDir + "\\" + filename, true);
-                    log(LogLevel.Info, "[FSWatcher] Backup complete");
-                }
-                else
-                {
-                    log(LogLevel.Info, "[FSWatcher] Not backing up saved game because auto backup has not been enabled");
-                }
-            }
-        }
-
-        private void saveGame_Renamed(object sender, RenamedEventArgs e)
-        {
-            log(LogLevel.Debug, "[FSWatcher] File: " + e.OldFullPath + " renamed to " + e.FullPath);
-
-        }
-
-        #endregion
+        #endregion // Log methods
 
         #region Exit
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             log(LogLevel.Info,"Saving defaults...");
-            Properties.Settings.Default.AutoLoadSave = optAutoLoadSave;
-            Properties.Settings.Default.AutoLoadSaveGame = optAutoLoadSaveGame;
+            Properties.Settings.Default.AutoLoadSave = optAutoLoadSavedGame;
+            Properties.Settings.Default.AutoLoadSaveGame = optAutoLoadSavedGamePath;
             Properties.Settings.Default.Backup = optBackup;
             Properties.Settings.Default.Logging = optLogging;
             Properties.Settings.Default.Save();
@@ -626,6 +780,5 @@ namespace GnomoriaEnhanced
         }
         #endregion
 
-        
     }
 }

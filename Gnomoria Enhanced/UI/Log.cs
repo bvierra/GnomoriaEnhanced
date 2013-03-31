@@ -196,7 +196,7 @@ namespace GnomoriaEnhanced.UI
 
         public ListBoxLog(ListBox listBox) : this(listBox, DEFAULT_MESSAGE_FORMAT, DEFAULT_MAX_LINES_IN_LISTBOX) { }
         public ListBoxLog(ListBox listBox, string messageFormat, bool debug = false) : this(listBox, messageFormat, DEFAULT_MAX_LINES_IN_LISTBOX, debug) { }
-        public ListBoxLog(ListBox listBox, string messageFormat, int maxLinesInListbox, bool debug = false)
+        public ListBoxLog(ListBox listBox, string messageFormat, int maxLinesInListbox, bool debug = true)
         {
             _debug = debug;
             _disposed = false;

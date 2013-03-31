@@ -16,9 +16,15 @@ using GameLibrary;
 
 namespace GELibrary
 {
-    public class Gnomoria
+    /// <summary>
+    /// This class holds the reference to the GnomanEmpire instance and manages it.
+    /// The GnomanEmpire class (and its static instance) represent the Gnomoria game model, and are used to manipulate save games.
+    /// </summary>
+    public class GameModel
     {
+        // Only set after a successfull call to loadGame()
         private GnomanEmpire _gnomanEmpire;
+
         private string mSaveGameFolder;
         private string mSettingsFolder;
         private int _skillColStart; // This should probably be defined in the LoadCharSkills
@@ -29,33 +35,47 @@ namespace GELibrary
         private Dictionary<string, string> mKingdomOverview;
 
         // Constructor
-        public Gnomoria()
+        public GameModel()
         {
         }
 
         public Result Initialize()
         {
-            Result result = new Result();
+            Result result = new Result(false, "");
             try
             {
-                Console.WriteLine("[Gnomoria] Initialize: 7z Setup");
+                Console.WriteLine("[Game Model] Initialize: 7z Setup");
                 SevenZip.SevenZipExtractor.SetLibraryPath("7z.dll");
 
-                Console.WriteLine("[Gnomoria] Initialize: Running reflection");
-                typeof(GnomanEmpire).GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(GnomanEmpire.Instance, null);
+                Console.WriteLine("[Game Model] Initialize: Running reflection");
+                MethodInfo initMethod = typeof(GnomanEmpire).GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Instance);
+                initMethod.Invoke(GnomanEmpire.Instance, null);
 
-                Console.WriteLine("[Gnomoria] Initialize: Setting SaveFolderPath");
+                // Stop the music playing (it starts automatically when the Game object is initialized)
+                GnomanEmpire.Instance.AudioManager.SetMusicVolume(0);
+                GnomanEmpire.Instance.AudioManager.SetSFXVolume(0);
+
+                // Exit the full screen mode if needed
+                if (GnomanEmpire.Instance.Graphics.IsFullScreen)
+                    GnomanEmpire.Instance.Graphics.ToggleFullScreen();
+
+                Console.WriteLine("[Game Model] Initialize: Setting SaveFolderPath");
                 mSaveGameFolder = GnomanEmpire.SaveFolderPath("Worlds\\");
                 mSettingsFolder = GnomanEmpire.SaveFolderPath();
 
-                Console.WriteLine("[Gnomoria] Initialize: Initializing Character Skills");
+                Console.WriteLine("[Game Model] Initialize: Initializing Character Skills");
                 Initialize_Character_Skills();
 
                 result.Success = true;
             }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                Console.WriteLine("[Game Model] Initialize: Exception encountered \"{0}\"", ex.InnerException.Message);
+                result.ErrorMessage = "InvocationException: " + ex.InnerException.ToString();
+            }
             catch (Exception ex)
             {
-                Console.WriteLine("[Gnomoria] Initialize: Exception encountered \"{0}\"", ex.Message);
+                Console.WriteLine("[Game Model] Initialize: Exception encountered \"{0}\"", ex.Message);
                 result.ErrorMessage = ex.Message;
             }
 
@@ -65,26 +85,39 @@ namespace GELibrary
         private void Initialize_Character_Skills()
         {
             // Setup temp array's to be modified and setup correctly
-            ArrayList namesTemp = new ArrayList(Enum.GetNames(typeof(CharacterSkillType)));
+            ArrayList skillNamesTemp = new ArrayList(Enum.GetNames(typeof(CharacterSkillType)));
             ArrayList skillsTemp = new ArrayList(Enum.GetValues(typeof(CharacterSkillType)));
 
             // The following values are in the CharacterSkillType Array however we do not want them.
-            skillsTemp.RemoveAt(44); // Count
-            namesTemp.RemoveAt(44);
-            skillsTemp.RemoveAt(39); // Discipline
-            namesTemp.RemoveAt(39);
-            skillsTemp.RemoveAt(30); // LaborEnd
-            namesTemp.RemoveAt(30);
+            int index = -1;
+
+            index = skillNamesTemp.IndexOf("LaborStart");
+            skillNamesTemp.RemoveAt(index);
+            skillsTemp.RemoveAt(index);
+
+            index = skillNamesTemp.IndexOf("LaborEnd");
+            skillNamesTemp.RemoveAt(index);
+            skillsTemp.RemoveAt(index);
+
+            index = skillNamesTemp.IndexOf("Count");
+            skillNamesTemp.RemoveAt(index);
+            skillsTemp.RemoveAt(index);
+
+            index = skillNamesTemp.IndexOf("Discipline");
+            skillNamesTemp.RemoveAt(index);
+            skillsTemp.RemoveAt(index);
 
             // The following values have different names and we are renaming to show it correctly
-            namesTemp[31] = "Fighting"; // Stored as: Natural Attack Show as: Fighting
+            index = skillNamesTemp.IndexOf("NaturalAttack");
+            skillNamesTemp[index]="Fighting";
 
-            skills = (CharacterSkillType[])skillsTemp.ToArray(typeof(CharacterSkillType));
-            skillNames = (string[])namesTemp.ToArray(typeof(string));
+            // Convert the temp arrays and store them in the class attributes.
+            skills     = (CharacterSkillType[])skillsTemp.ToArray(typeof(CharacterSkillType));
+            skillNames = (string[])skillNamesTemp.ToArray(typeof(string));
 
             // Clean up
             skillsTemp = null;
-            namesTemp = null;
+            skillNamesTemp = null;
         }
 
         public Result LoadGame(string saveGame)
@@ -93,9 +126,9 @@ namespace GELibrary
 
             try
             {
-                Console.WriteLine("[Gnomoria] LoadGame: Loading world {0}", saveGame);
+                Console.WriteLine("[Game Model] LoadGame: Loading world {0}", saveGame);
                 GnomanEmpire.Instance.LoadGame(saveGame, false);
-                Console.WriteLine("[Gnomoria] LoadGame Instance.LoadGame successful, now setting _gnomanEmpire");
+                Console.WriteLine("[Game Model] LoadGame Instance.LoadGame successful, now setting _gnomanEmpire");
                 _gnomanEmpire = GnomanEmpire.Instance;
 
                 result.Success = true;
@@ -110,7 +143,7 @@ namespace GELibrary
 
         public Result Load_Character_Stats()
         {
-            Result result = new Result();
+            Result result = new Result(false, "");
 
             if (_gnomanEmpire == null)
             {
@@ -120,7 +153,7 @@ namespace GELibrary
 
             try
             {
-                Console.WriteLine("[Gnomoria] Load_Character_Stats: Adding Character Information");
+                Console.WriteLine("[Game Model] Load_Character_Stats: Adding Character Information");
 
                 if (mCharStats != null)
                 {
@@ -134,15 +167,15 @@ namespace GELibrary
                 DataColumn cNum = new DataColumn("Num", typeof(string));
                 mCharStats.PrimaryKey = new DataColumn[] { mCharStats.Columns.Add(cNum.ColumnName) };
 
-                DataColumn cName = mCharStats.Columns.Add("Name", typeof(string));
+                DataColumn cName   = mCharStats.Columns.Add("Name", typeof(string));
                 DataColumn cHunger = mCharStats.Columns.Add("Hunger", typeof(int));
                 DataColumn cThirst = mCharStats.Columns.Add("Thirst", typeof(int));
-                DataColumn cBlood = mCharStats.Columns.Add("Blood Level", typeof(int));
-                DataColumn cRest = mCharStats.Columns.Add("Rest Level", typeof(int));
+                DataColumn cBlood  = mCharStats.Columns.Add("Blood Level", typeof(int));
+                DataColumn cRest   = mCharStats.Columns.Add("Rest Level", typeof(int));
 
                 foreach (var Char in _gnomanEmpire.World.AIDirector.PlayerFaction.Members)
                 {
-                    Console.WriteLine("[Gnomoria] Load_Character_Stats: Adding Character: {0}",Char.Value.Name());
+                    Console.WriteLine("[Game Model] Load_Character_Stats: Adding Character: {0}",Char.Value.Name());
                     DataRow tmpRow = mCharStats.NewRow();
                     tmpRow[0] = Char.Key;
                     tmpRow[1] = Char.Value.Name();
@@ -150,7 +183,7 @@ namespace GELibrary
                     tmpRow[3] = Char.Value.Body.ThirstLevel;
                     tmpRow[4] = Char.Value.Body.BloodLevel;
                     tmpRow[5] = Char.Value.Body.RestLevel;
-                    mCharStats.Rows.Add(tmpRow);    
+                    mCharStats.Rows.Add(tmpRow);
                 }
                 mCharStats.Columns[0].ReadOnly = true;
                 mCharStats.Columns[1].ReadOnly = true;
@@ -160,7 +193,7 @@ namespace GELibrary
                 mCharStats.Columns[5].ReadOnly = true;
 
                 result.Success = true;
-                Console.WriteLine("[Gnomoria] Load_Character_Stats: Adding Character Information Completed");
+                Console.WriteLine("[Game Model] Load_Character_Stats: Adding Character Information Completed");
             }
             catch (Exception ex)
             {
@@ -255,10 +288,10 @@ namespace GELibrary
         public Result Load_Kingdom_Overview()
         {
             Result result = new Result();
-            Console.WriteLine("[Gnomoria] Loading Kingdom Overview...");
+            Console.WriteLine("[Game Model] Loading Kingdom Overview...");
             if (_gnomanEmpire == null)
             {
-                Console.WriteLine("[Gnomoria] LoadGame not called 1st");
+                Console.WriteLine("[Game Model] LoadGame not called 1st");
                 result.ErrorMessage = "You must LoadGame prior to Load_Kingdom_Overview";
                 result.Success = false;
                 return result;
@@ -266,26 +299,24 @@ namespace GELibrary
 
             try
             {
+                mKingdomOverview = new Dictionary<string, string>();
                 mKingdomOverview["KingdomName"] = _gnomanEmpire.World.AIDirector.PlayerFaction.Name;
-                Console.WriteLine("Kingdom Name: {0}", mKingdomOverview["KingdomName"]);
                 mKingdomOverview["TotalWealth"] = _gnomanEmpire.Fortress.TotalWealth.ToString();
-                Console.WriteLine("TotalWealth: {0}", mKingdomOverview["TotalWealth"]);
-                mKingdomOverview["GameDate"] = _gnomanEmpire.Region.DayOfSeasonString();
-                Console.WriteLine("GameDate: {0}", mKingdomOverview["GameDate"]);
+                mKingdomOverview["GameDate"]    = _gnomanEmpire.Region.DayOfSeasonString();
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[Gnomoria] Exception Caught: {0}",ex.Message);
+                Console.WriteLine("[Game Model] Exception Caught: {0}",ex.Message);
                 result.ErrorMessage = ex.Message;
                 result.Success = false;
                 return result;
             }
-            Console.WriteLine("[Gnomoria] Loading Kingdom Overview Completed");
+            Console.WriteLine("[Game Model] Loading Kingdom Overview Completed");
             return result;
         }
 
         // Public Accessors
-        public string getSaveGameFolder()
+        public string getSavedGameFolder()
         {
             if (mSaveGameFolder != null)
             {
