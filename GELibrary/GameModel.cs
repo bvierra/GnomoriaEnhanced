@@ -27,9 +27,15 @@ namespace GELibrary
 
         private string mSaveGameFolder;
         private string mSettingsFolder;
-        private int _skillColStart; // This should probably be defined in the LoadCharSkills
+
+        // Arrays storing the skill names (displayed) and the enum (used in queries).
         private string[] skillNames;
-        private CharacterSkillType[] skills;
+        private CharacterSkillType[] skillTypes;
+
+        // Array storing the attribute names (displayed) and the related enum values (used in queries)
+        private string[] attributeNames;
+        private CharacterAttributeType[] attributeTypes;
+
         private DataTable mCharSkills;
         private DataTable mCharStats;
         private Dictionary<string, string> mKingdomOverview;
@@ -64,7 +70,8 @@ namespace GELibrary
                 mSettingsFolder = GnomanEmpire.SaveFolderPath();
 
                 Console.WriteLine("[Game Model] Initialize: Initializing Character Skills");
-                Initialize_Character_Skills();
+                InitializeCharacterAttributes();
+                InitializeCharacterSkills();
 
                 result.Success = true;
             }
@@ -82,41 +89,96 @@ namespace GELibrary
             return result;
         }
 
-        private void Initialize_Character_Skills()
+        private void InitializeCharacterAttributes()
+        {
+            // Setup temp array's to be modified and setup correctly
+            ArrayList attrNamesTemp = new ArrayList(Enum.GetNames(typeof(CharacterAttributeType)));
+            ArrayList attrTypesTemp = new ArrayList(Enum.GetValues(typeof(CharacterAttributeType)));
+
+            // The following values are in the CharacterSkillType Array however we do not want them.
+            int index = -1;
+
+            index = attrNamesTemp.IndexOf("Count");
+            attrNamesTemp.RemoveAt(index);
+            attrTypesTemp.RemoveAt(index);
+
+            // Convert the temp arrays and store them in the class attributes.
+            attributeTypes = (CharacterAttributeType[])attrTypesTemp.ToArray(typeof(CharacterAttributeType));
+            attributeNames = (string[])attrNamesTemp.ToArray(typeof(string));
+
+            // Clean up
+            attrTypesTemp = null;
+            attrNamesTemp = null;
+        }
+
+        private void InitializeCharacterSkills()
         {
             // Setup temp array's to be modified and setup correctly
             ArrayList skillNamesTemp = new ArrayList(Enum.GetNames(typeof(CharacterSkillType)));
-            ArrayList skillsTemp = new ArrayList(Enum.GetValues(typeof(CharacterSkillType)));
 
             // The following values are in the CharacterSkillType Array however we do not want them.
             int index = -1;
 
             index = skillNamesTemp.IndexOf("LaborStart");
             skillNamesTemp.RemoveAt(index);
-            skillsTemp.RemoveAt(index);
 
             index = skillNamesTemp.IndexOf("LaborEnd");
             skillNamesTemp.RemoveAt(index);
-            skillsTemp.RemoveAt(index);
 
             index = skillNamesTemp.IndexOf("Count");
             skillNamesTemp.RemoveAt(index);
-            skillsTemp.RemoveAt(index);
 
             index = skillNamesTemp.IndexOf("Discipline");
             skillNamesTemp.RemoveAt(index);
-            skillsTemp.RemoveAt(index);
 
-            // The following values have different names and we are renaming to show it correctly
-            index = skillNamesTemp.IndexOf("NaturalAttack");
-            skillNamesTemp[index]="Fighting";
+            // Reorder skills. Put combat skills first and then order the task skills correctly.
+            skillNamesTemp.Remove("Bonecarving");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Tinkering"), "Bonecarving");
+
+            skillNamesTemp.Remove("Medic");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Construction"), "Medic");
+
+            skillNamesTemp.Remove("Caretaker");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Construction"), "Caretaker");
+
+            skillNamesTemp.Remove("NaturalAttack");
+            skillNamesTemp.Remove("Brawling");
+            skillNamesTemp.Remove("Sword");
+            skillNamesTemp.Remove("Axe");
+            skillNamesTemp.Remove("Hammer");
+            skillNamesTemp.Remove("Crossbow");
+            skillNamesTemp.Remove("Gun");
+            skillNamesTemp.Remove("Shield");
+            skillNamesTemp.Remove("Dodge");
+            skillNamesTemp.Remove("Armor");
+
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "NaturalAttack");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Brawling");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Sword");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Axe");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Hammer");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Crossbow");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Gun");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Shield");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Dodge");
+            skillNamesTemp.Insert(skillNamesTemp.IndexOf("Mining"), "Armor");
 
             // Convert the temp arrays and store them in the class attributes.
-            skills     = (CharacterSkillType[])skillsTemp.ToArray(typeof(CharacterSkillType));
+            skillTypes = new CharacterSkillType[skillNamesTemp.Count];
+            for (int i = 0; i < skillNamesTemp.Count; i++)
+            {
+                // Convert skills names to skill enums using the static Enum.Parse() method.
+                skillTypes[i] = (CharacterSkillType) Enum.Parse(typeof(CharacterSkillType), skillNamesTemp[i].ToString());
+            }
+
+            // Final changes: name changes must be done after converting names to official Enum values
+            // The following values have different names and we are renaming to show it correctly
+            index = skillNamesTemp.IndexOf("NaturalAttack");
+            skillNamesTemp[index] = "Fighting";
+
             skillNames = (string[])skillNamesTemp.ToArray(typeof(string));
 
             // Clean up
-            skillsTemp = null;
             skillNamesTemp = null;
         }
 
@@ -164,33 +226,34 @@ namespace GELibrary
 
                 mCharStats = new DataTable("mCharStats");
 
+                // Add the first column, the character ID ("Num") and declare it as the primary key.
                 DataColumn cNum = new DataColumn("Num", typeof(string));
                 mCharStats.PrimaryKey = new DataColumn[] { mCharStats.Columns.Add(cNum.ColumnName) };
 
-                DataColumn cName   = mCharStats.Columns.Add("Name", typeof(string));
-                DataColumn cHunger = mCharStats.Columns.Add("Hunger", typeof(int));
-                DataColumn cThirst = mCharStats.Columns.Add("Thirst", typeof(int));
-                DataColumn cBlood  = mCharStats.Columns.Add("Blood Level", typeof(int));
-                DataColumn cRest   = mCharStats.Columns.Add("Rest Level", typeof(int));
+                // Add other columns and set them as read-only.
+                mCharStats.Columns.Add("Name", typeof(string));
+
+                // Body stats
+                mCharStats.Columns.Add("Hunger", typeof(int));
+                mCharStats.Columns.Add("Thirst", typeof(int));
+                mCharStats.Columns.Add("Blood Level", typeof(int));
+                mCharStats.Columns.Add("Rest Level", typeof(int));
 
                 foreach (var Char in _gnomanEmpire.World.AIDirector.PlayerFaction.Members)
                 {
                     Console.WriteLine("[Game Model] Load_Character_Stats: Adding Character: {0}",Char.Value.Name());
                     DataRow tmpRow = mCharStats.NewRow();
-                    tmpRow[0] = Char.Key;
-                    tmpRow[1] = Char.Value.Name();
-                    tmpRow[2] = Char.Value.Body.HungerLevel;
-                    tmpRow[3] = Char.Value.Body.ThirstLevel;
-                    tmpRow[4] = Char.Value.Body.BloodLevel;
-                    tmpRow[5] = Char.Value.Body.RestLevel;
+                    int col = 0;
+                    tmpRow[col++] = Char.Key;
+                    tmpRow[col++] = Char.Value.Name();
+
+                    // Body stats
+                    tmpRow[col++] = Char.Value.Body.HungerLevel;
+                    tmpRow[col++] = Char.Value.Body.ThirstLevel;
+                    tmpRow[col++] = Char.Value.Body.BloodLevel;
+                    tmpRow[col++] = Char.Value.Body.RestLevel;
                     mCharStats.Rows.Add(tmpRow);
                 }
-                mCharStats.Columns[0].ReadOnly = true;
-                mCharStats.Columns[1].ReadOnly = true;
-                mCharStats.Columns[2].ReadOnly = true;
-                mCharStats.Columns[3].ReadOnly = true;
-                mCharStats.Columns[4].ReadOnly = true;
-                mCharStats.Columns[5].ReadOnly = true;
 
                 result.Success = true;
                 Console.WriteLine("[Game Model] Load_Character_Stats: Adding Character Information Completed");
@@ -203,11 +266,9 @@ namespace GELibrary
             return result;
         }
 
-        public Result Load_Character_Skills(int skillColStart)
+        public Result Load_Character_Skills()
         {
             Result result = new Result();
-
-            this._skillColStart = skillColStart;
 
             if (_gnomanEmpire == null)
             {
@@ -229,10 +290,17 @@ namespace GELibrary
                 DataColumn cNum = new DataColumn("Num", typeof(string));
                 mCharSkills.PrimaryKey = new DataColumn[] { mCharSkills.Columns.Add(cNum.ColumnName) };
 
-                DataColumn cName = mCharSkills.Columns.Add("Name", typeof(string));
-                DataColumn cProfession = mCharSkills.Columns.Add("Profession", typeof(string));
-                DataColumn cJob = mCharSkills.Columns.Add("Current Job", typeof(string));
+                mCharSkills.Columns.Add("Name", typeof(string));
+                mCharSkills.Columns.Add("Profession", typeof(string));
+                mCharSkills.Columns.Add("Current Job", typeof(string));
 
+                // Attribute columns
+                foreach (string attrName in attributeNames)
+                {
+                    mCharSkills.Columns.Add(attrName, typeof(int));
+                }
+
+                // Skill columns
                 foreach (string name in skillNames)
                 {
                     mCharSkills.Columns.Add(name, typeof(int));
@@ -241,31 +309,38 @@ namespace GELibrary
                 foreach (var Char in _gnomanEmpire.World.AIDirector.PlayerFaction.Members)
                 {
                     DataRow tmpRow = mCharSkills.NewRow();
-                    tmpRow[0] = Char.Key;
-                    tmpRow[1] = Char.Value.Name();
-                    tmpRow[2] = Char.Value.Title();
+                    int col = 0;
+                    tmpRow[col++] = Char.Key;
+                    tmpRow[col++] = Char.Value.Name();
+                    tmpRow[col++] = Char.Value.Title();
                     if (Char.Value.Job == null)
                     {
                         if (Char.Value.Body.IsSleeping == true)
                         {
-                            tmpRow[3] = "Sleeping";
+                            tmpRow[col++] = "Sleeping";
                         }
                         else
                         {
-                            tmpRow[3] = "Idle";
+                            tmpRow[col++] = "Idle";
                         }
                     }
                     else
                     {
-                        tmpRow[3] = Char.Value.Job.JobName();
+                        tmpRow[col++] = Char.Value.Job.JobName();
                     }
 
-                    int tmpCol = _skillColStart;
-                    foreach (CharacterSkillType skill in skills)
+                    // Character attributes (Note: values are float, actually %)
+                    foreach (CharacterAttributeType attrType in attributeTypes)
                     {
-                        tmpRow[tmpCol] = Char.Value.SkillLevel(skill);
-                        tmpCol++;
+                        tmpRow[col++] = Char.Value.AttributeLevel(attrType) * 100;
                     }
+
+                    // Character skills
+                    foreach (CharacterSkillType skill in skillTypes)
+                    {
+                        tmpRow[col++] = Char.Value.SkillLevel(skill);
+                    }
+
                     mCharSkills.Rows.Add(tmpRow);
                 }
 

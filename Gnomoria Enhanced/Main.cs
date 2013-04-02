@@ -74,11 +74,13 @@ namespace GnomoriaEnhanced
             // Setup up Data View Headers
             dataGridViewCharSkillsHeaderFont = new Font(new FontFamily("Arial"), 11);
 
+            // Note: using a double buffer doesn't prevent issue with column names not painted correctly
+            // when scrolling back to the left, but it improves the overall painting experience.
             typeof(DataGridView).InvokeMember(
-                "DoubleBuffered", 
+                "DoubleBuffered",
                 BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
-                null, 
-                dataGridViewCharSkills, 
+                null,
+                dataGridViewCharSkills,
                 new object[] { true });
 
             // Verify the game settings and display a warning message if something is wrong.
@@ -256,7 +258,7 @@ namespace GnomoriaEnhanced
             else
             {
                 bw.ReportProgress(0,"Parsing Character Skills...");
-                Result res2 = gnomoria.Load_Character_Skills(_skillColStart);
+                Result res2 = gnomoria.Load_Character_Skills();
                 if (res2.Success == false)
                 {
                     log(LogLevel.Error,"[Main] LoadGame_DoWork failed at gnomoria.Load_Character_Skills with message: " + res2.ErrorMessage);
@@ -404,7 +406,6 @@ namespace GnomoriaEnhanced
             dataGridViewCharSkills.AllowUserToDeleteRows = false;
 
             dataGridViewCharSkills.Columns[0].Visible = false;
-            dataGridViewCharSkills.Columns[_skillColStart].Visible = false;
             dataGridViewCharSkills.Columns[1].Frozen = true;
             dataGridViewCharSkills.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             dataGridViewCharSkills.Columns[2].Frozen = true;
