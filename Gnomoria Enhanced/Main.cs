@@ -410,18 +410,20 @@ namespace GnomoriaEnhanced
             dataGridViewCharSkills.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             dataGridViewCharSkills.Columns[2].Frozen = true;
             dataGridViewCharSkills.Columns[2].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            //dataGridViewCharSkills.Columns[3].Frozen = true;
-            //dataGridViewCharSkills.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
-            dataGridViewCharSkills.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            // Change default alignment to middle right for numeric columns
+            for (int col = _skillColStart; col < dataGridViewCharSkills.Columns.Count; col++)
+            {
+                dataGridViewCharSkills.Columns[col].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            }
 
             dataGridViewCharSkills.Sort(dataGridViewCharSkills.Columns[1], ListSortDirection.Ascending); // Sort by Name Asc 
 
+            // Force header resizing to make sure all skill names are displayed correctly.
+            dataGridViewCharSkills.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewCharSkills_CellClick(null, new DataGridViewCellEventArgs(-1, -1));
 
             dataGridViewCharSkills.ResumeLayout();
-
-            tabCharSkills.Show();
         }
 
         /// <summary>
@@ -442,16 +444,19 @@ namespace GnomoriaEnhanced
             dataGridViewCharStats.Columns[1].Frozen = true;
             dataGridViewCharStats.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
-            dataGridViewCharStats.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-
+            // Change default alignment to middle right for numeric columns
+            for (int col = _statColStart; col < dataGridViewCharStats.Columns.Count; col++)
+            {
+                dataGridViewCharStats.Columns[col].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            }
+            
             dataGridViewCharStats.Sort(dataGridViewCharStats.Columns[1], ListSortDirection.Ascending); // Sort by Name Asc 
 
+            // Force header resizing to make sure all skill names are displayed correctly.
+            dataGridViewCharStats.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewCharStats_CellClick(null, new DataGridViewCellEventArgs(-1, -1));
 
             dataGridViewCharStats.ResumeLayout();
-
-            //tabCharStats.Show();
-
         }
 
         /// <summary>
@@ -469,6 +474,13 @@ namespace GnomoriaEnhanced
 
         #region DataGrid
         // DataGrid Methods
+
+        /// <summary>
+        /// Called when painting the dataGridViewCharSkills table. 
+        /// Does a special handling only for column headers containing skill names, and paint the skill name vertically, adjusting the header height if needed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void dataGridViewCharSkills_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             if (e.RowIndex == -1 && e.ColumnIndex >= _skillColStart)
@@ -500,6 +512,11 @@ namespace GnomoriaEnhanced
             }
         }
 
+        /// <summary>
+        /// When the top left cell of the table is clicked, recompute the column header height to make sure all skill names are displayed (vertically) correctly.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void dataGridViewCharSkills_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == -1 && e.RowIndex == -1)
@@ -518,6 +535,12 @@ namespace GnomoriaEnhanced
             }
         }
 
+        /// <summary>
+        /// Called when painting the dataGridViewCharStats table. 
+        /// Does a special handling only for column headers containing skill names, and paint the skill name vertically, adjusting the header height if needed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void dataGridViewCharStats_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             if (e.RowIndex == -1 && e.ColumnIndex >= _statColStart)
@@ -549,6 +572,11 @@ namespace GnomoriaEnhanced
             }
         }
 
+        /// <summary>
+        /// When the top left cell of the table is clicked, recompute the column header height to make sure all skill names are displayed (vertically) correctly.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void dataGridViewCharStats_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == -1 && e.RowIndex == -1)
