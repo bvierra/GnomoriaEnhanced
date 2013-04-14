@@ -90,6 +90,11 @@ namespace GnomoriaEnhanced
             // Note: Using parameter force = false to do nothing if the game settings were KO.
             InitializeGameModel(false);
 
+            // Hide the tabs showing game data until a saved game is loaded.
+            tabControl.Controls.Remove(this.tabCharSkills);
+            tabControl.Controls.Remove(this.tabCharStats);
+            tabControl.Controls.Remove(this.tabItemFinder);
+
             // Reset menu items according to status
             ResetMenuItems();
         }
@@ -190,12 +195,23 @@ namespace GnomoriaEnhanced
         #endregion
 
         #region Button Clicks
-        // Button Click
-        private void btnChatStatsHelp_Click(object sender, EventArgs e)
-        {
 
+        private void findItemButton_Click(object sender, EventArgs e)
+        {
+            FindItem();
         }
-        #endregion        
+
+        private void ItemFamilyCombo_SelectedItemChanged(Object sender, EventArgs e)
+        {
+            UpdateItemFinderCombos(true); // True = update the list of subfamilies and the list of item types.
+        }
+
+        private void ItemSubFamilyCombo_SelectedItemChanged(Object sender, EventArgs e)
+        {
+            UpdateItemFinderCombos(false); // False = do not update the list of subfamilies, only the item types.
+        }
+
+        #endregion
 
         #region Background Workers
         // Background Workers
@@ -303,7 +319,7 @@ namespace GnomoriaEnhanced
         }
         #endregion
 
-        #region Tabs
+        #region Tabs and game loading methods
         // Tab Loading
 
         /// <summary>
@@ -355,9 +371,15 @@ namespace GnomoriaEnhanced
             // The worker will update the _savedGameLoaded status variable on success
             if (_savedGameLoaded == true)
             {
-                tabPageOverview_Load();
-                tabCharStats_Load();
-                tabCharSkills_Load();
+                // Add back the tabs showing game data until a saved game is loaded.
+                tabControl.Controls.Add(this.tabCharSkills);
+                tabControl.Controls.Add(this.tabCharStats);
+                tabControl.Controls.Add(this.tabItemFinder);
+
+                LoadTabPageOverview();
+                LoadTabCharStats();
+                LoadTabCharSkills();
+                LoadTabItemFinder();
 
                 log(LogLevel.Info, "Game Loaded");
                 this.tabControl.SelectedTab = tabCharSkills;
@@ -394,7 +416,7 @@ namespace GnomoriaEnhanced
         /// <summary>
         /// Initialize the Character Skills tab. Called by LoadGame().
         /// </summary>
-        public void tabCharSkills_Load()
+        public void LoadTabCharSkills()
         {
             this.tabCharSkills.Show();
 
@@ -429,7 +451,7 @@ namespace GnomoriaEnhanced
         /// <summary>
         /// Initialize the Character Stats tab. Called by LoadGame().
         /// </summary>
-        public void tabCharStats_Load()
+        public void LoadTabCharStats()
         {
             this.tabCharStats.Show();
 
@@ -462,7 +484,7 @@ namespace GnomoriaEnhanced
         /// <summary>
         /// Initialize the Kingdom overview tab. Called by LoadGame().
         /// </summary>
-        public void tabPageOverview_Load()
+        public void LoadTabPageOverview()
         {
             Dictionary<string, string> overview = gnomoria.getKingdomOverview();
 
@@ -470,6 +492,76 @@ namespace GnomoriaEnhanced
             lblTabOverviewTotalWorthValue.Text  = overview["TotalWealth"];
             lblTabOverviewDateValue.Text        = overview["GameDate"];
         }
+
+        #endregion
+
+        #region Item Finder
+        public void LoadTabItemFinder()
+        {
+            // Initialize the item finder combo boxes
+            itemFamilyCombo.DataSource    = ItemFamily.GetFamilies();
+            itemQualityCombo.DataSource   = Enum.GetValues(typeof(GameLibrary.ItemQuality));
+            itemQualityCombo.SelectedItem = GameLibrary.ItemQuality.Any;
+
+            UpdateItemFinderCombos(true); // True = update the list of subfamilies and the list of item types.
+        }
+        
+        /// <summary>
+        /// Update the dataGridViewItems table with the list of items described by the Item Finder combos and present in the game map.
+        /// Called when the "Find Items" button is clicked.
+        /// </summary>
+        private void FindItem()
+        {
+            // Stop here if the no saved game has been loaded yet.
+            if (_savedGameLoaded == false)
+            {
+                log(LogLevel.Warning, "Can't find an item before a saved game has been loaded.");
+                return;
+            }
+
+            dataGridViewItems.SuspendLayout();
+
+            if (dataGridViewItems.DataSource != null)
+            {
+                dataGridViewItems.DataSource = null;
+            }
+
+            // Get the list of matching items from the game model and set it as the model for dataGridViewItems
+            IList<GameLibrary.ItemID> itemIDs = ItemFamily.GetItemIDs(
+                itemFamilyCombo.SelectedItem.ToString(),
+                itemSubFamilyCombo.SelectedItem.ToString(),
+                itemTypeCombo.SelectedItem.ToString());
+            GameLibrary.ItemQuality quality = (GameLibrary.ItemQuality)Enum.Parse(typeof(GameLibrary.ItemQuality), itemQualityCombo.SelectedItem.ToString(), true);
+            dataGridViewItems.DataSource = gnomoria.FindItems(itemIDs, quality);
+
+            // Set various properties of the grid view
+            dataGridViewItems.AllowUserToAddRows = false;
+            dataGridViewItems.AllowUserToDeleteRows = false;
+
+            dataGridViewItems.Columns[0].Visible = false;
+            dataGridViewItems.Columns[1].Frozen = true;
+            dataGridViewItems.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+            dataGridViewItems.Sort(dataGridViewItems.Columns[1], ListSortDirection.Ascending); // Sort by Name Asc 
+
+            dataGridViewItems.ResumeLayout();
+
+            // Update result
+            findItemResultLabel.Text = "Found " + dataGridViewItems.Rows.Count + " objects.";
+        }
+
+        /// <summary>
+        /// Update the subfamily and item type combo lists when the family or subfamily selection changes.
+        /// </summary>
+        /// <param name="reloadSubFamilies">If true, update the list of subfamilies and the list of item types. If false, only update the item types.</param>
+        private void UpdateItemFinderCombos(bool reloadSubFamilies)
+        {
+            if (reloadSubFamilies)
+                itemSubFamilyCombo.DataSource = ItemFamily.GetSubFamilies(itemFamilyCombo.SelectedItem.ToString());
+
+            itemTypeCombo.DataSource      = ItemFamily.GetItemNames(itemFamilyCombo.SelectedItem.ToString(), itemSubFamilyCombo.SelectedItem.ToString());
+        }
+
         #endregion
 
         #region DataGrid

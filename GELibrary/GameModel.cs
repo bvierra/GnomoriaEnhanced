@@ -45,6 +45,87 @@ namespace GELibrary
         {
         }
 
+        public DataTable FindItems(IList<ItemID> itemIDs, GameLibrary.ItemQuality quality)
+        {
+            if (_gnomanEmpire == null)
+            {
+                throw new InvalidOperationException("You must LoadGame() prior to FindItems()");
+            }
+
+            Dictionary<int, List<Item>> searchResult = null;
+            ItemsByQuality resultByQuality = null;
+            ItemsByMaterial resultByMaterial = null;
+
+            DataTable itemTable = new DataTable("items");
+
+            DataColumn cNum = new DataColumn("Num", typeof(string));
+            itemTable.PrimaryKey = new DataColumn[] { itemTable.Columns.Add(cNum.ColumnName) };
+
+            itemTable.Columns.Add("Name", typeof(string));
+            itemTable.Columns.Add("Material", typeof(string));
+            itemTable.Columns.Add("Quality", typeof(string));
+            itemTable.Columns.Add("Location type", typeof(string));
+            itemTable.Columns.Add("Location", typeof(string));
+            itemTable.Columns.Add("Position", typeof(string));
+
+            // When no object matches, the result can be null, or contain only empty lists.
+            foreach (ItemID itemID in itemIDs)
+            {
+                resultByQuality  = _gnomanEmpire.Fortress.StockManager.ItemsByQuality(itemID);
+                if (resultByQuality != null)
+                    searchResult = resultByQuality.ItemsOfQualityOrHigher(quality).Items;
+                else
+                    searchResult = null;
+                if (searchResult != null)
+                {
+                    foreach (var valuePair in searchResult)
+                    {
+                        List<Game.Item> list = valuePair.Value;
+                        foreach (Game.Item item in list)
+                        {
+                            DataRow tmpRow = itemTable.NewRow();
+                            int col = 0;
+
+                            // Base attributes
+                            tmpRow[col++] = item.ID;
+                            tmpRow[col++] = Item.GroupName(item.ItemID);// item.Name();
+                            tmpRow[col++] = item.MaterialName();
+                            tmpRow[col++] = item.Quality;
+
+                            // Parent type and parent
+                            if (item.Parent != null)
+                            {
+                                if (item.Parent is Game.Character)
+                                {
+                                    tmpRow[col++] = "Gnome";
+                                }
+                                else if (item.Parent is Game.StorageContainer)
+                                {
+                                    tmpRow[col++] = "Container";
+                                }
+                                else
+                                {
+                                    tmpRow[col++] = "?"; // Default catcher. Could be monster?
+                                }
+                                tmpRow[col++] = item.Parent.Name();
+                            }
+                            else
+                            {
+                                tmpRow[col++] = "Ground";
+                                tmpRow[col++] = "";
+                            }
+
+                            tmpRow[col++] = item.Position.ToString();
+
+                            itemTable.Rows.Add(tmpRow);
+                        }
+                    }
+                }
+            }
+
+            return itemTable;
+        }
+
         public Result Initialize()
         {
             Result result = new Result(false, "");

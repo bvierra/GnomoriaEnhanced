@@ -61,6 +61,19 @@
             this.dataGridViewCharStats = new System.Windows.Forms.DataGridView();
             this.tabCharStatsBottomPanel = new System.Windows.Forms.Panel();
             this.btnCharStatsHelp = new System.Windows.Forms.Button();
+            this.tabItemFinder = new System.Windows.Forms.TabPage();
+            this.itemFinderPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.itemSubFamilyLabel = new System.Windows.Forms.Label();
+            this.itemFamilyLabel = new System.Windows.Forms.Label();
+            this.itemTypeLabel = new System.Windows.Forms.Label();
+            this.itemQualityLabel = new System.Windows.Forms.Label();
+            this.itemFamilyCombo = new System.Windows.Forms.ComboBox();
+            this.itemTypeCombo = new System.Windows.Forms.ComboBox();
+            this.itemQualityCombo = new System.Windows.Forms.ComboBox();
+            this.findItemButton = new System.Windows.Forms.Button();
+            this.dataGridViewItems = new System.Windows.Forms.DataGridView();
+            this.findItemResultLabel = new System.Windows.Forms.Label();
+            this.itemSubFamilyCombo = new System.Windows.Forms.ComboBox();
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -71,6 +84,9 @@
             this.tabCharStats.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewCharStats)).BeginInit();
             this.tabCharStatsBottomPanel.SuspendLayout();
+            this.tabItemFinder.SuspendLayout();
+            this.itemFinderPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewItems)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip
@@ -190,6 +206,7 @@
             this.tabControl.Controls.Add(this.tabPageOverview);
             this.tabControl.Controls.Add(this.tabCharSkills);
             this.tabControl.Controls.Add(this.tabCharStats);
+            this.tabControl.Controls.Add(this.tabItemFinder);
             this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl.Location = new System.Drawing.Point(0, 24);
             this.tabControl.Margin = new System.Windows.Forms.Padding(2);
@@ -425,7 +442,169 @@
             this.btnCharStatsHelp.TabIndex = 0;
             this.btnCharStatsHelp.Text = "Help";
             this.btnCharStatsHelp.UseVisualStyleBackColor = true;
-            this.btnCharStatsHelp.Click += new System.EventHandler(this.btnChatStatsHelp_Click);
+            // 
+            // tabItemFinder
+            // 
+            this.tabItemFinder.Controls.Add(this.itemFinderPanel);
+            this.tabItemFinder.Location = new System.Drawing.Point(4, 22);
+            this.tabItemFinder.Name = "tabItemFinder";
+            this.tabItemFinder.Size = new System.Drawing.Size(975, 389);
+            this.tabItemFinder.TabIndex = 3;
+            this.tabItemFinder.Text = "Item finder";
+            this.tabItemFinder.UseVisualStyleBackColor = true;
+            // 
+            // itemFinderPanel
+            // 
+            this.itemFinderPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.itemFinderPanel.AutoSize = true;
+            this.itemFinderPanel.ColumnCount = 4;
+            this.itemFinderPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.itemFinderPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.itemFinderPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.itemFinderPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.itemFinderPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.itemFinderPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.itemFinderPanel.Controls.Add(this.itemSubFamilyLabel, 0, 1);
+            this.itemFinderPanel.Controls.Add(this.itemFamilyLabel, 0, 0);
+            this.itemFinderPanel.Controls.Add(this.itemTypeLabel, 0, 2);
+            this.itemFinderPanel.Controls.Add(this.itemQualityLabel, 2, 0);
+            this.itemFinderPanel.Controls.Add(this.itemFamilyCombo, 1, 0);
+            this.itemFinderPanel.Controls.Add(this.itemTypeCombo, 1, 2);
+            this.itemFinderPanel.Controls.Add(this.itemQualityCombo, 3, 0);
+            this.itemFinderPanel.Controls.Add(this.findItemButton, 2, 2);
+            this.itemFinderPanel.Controls.Add(this.dataGridViewItems, 0, 3);
+            this.itemFinderPanel.Controls.Add(this.findItemResultLabel, 3, 2);
+            this.itemFinderPanel.Controls.Add(this.itemSubFamilyCombo, 1, 1);
+            this.itemFinderPanel.Location = new System.Drawing.Point(0, 0);
+            this.itemFinderPanel.Name = "itemFinderPanel";
+            this.itemFinderPanel.RowCount = 4;
+            this.itemFinderPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
+            this.itemFinderPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
+            this.itemFinderPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
+            this.itemFinderPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.itemFinderPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.itemFinderPanel.Size = new System.Drawing.Size(979, 389);
+            this.itemFinderPanel.TabIndex = 0;
+            // 
+            // itemSubFamilyLabel
+            // 
+            this.itemSubFamilyLabel.AutoSize = true;
+            this.itemSubFamilyLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemSubFamilyLabel.Location = new System.Drawing.Point(3, 30);
+            this.itemSubFamilyLabel.Name = "itemSubFamilyLabel";
+            this.itemSubFamilyLabel.Size = new System.Drawing.Size(238, 30);
+            this.itemSubFamilyLabel.TabIndex = 9;
+            this.itemSubFamilyLabel.Text = "Item Sub-Family:";
+            this.itemSubFamilyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // itemFamilyLabel
+            // 
+            this.itemFamilyLabel.AutoSize = true;
+            this.itemFamilyLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemFamilyLabel.Location = new System.Drawing.Point(3, 0);
+            this.itemFamilyLabel.Name = "itemFamilyLabel";
+            this.itemFamilyLabel.Size = new System.Drawing.Size(238, 30);
+            this.itemFamilyLabel.TabIndex = 0;
+            this.itemFamilyLabel.Text = "Item Family:";
+            this.itemFamilyLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // itemTypeLabel
+            // 
+            this.itemTypeLabel.AutoSize = true;
+            this.itemTypeLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemTypeLabel.Location = new System.Drawing.Point(3, 60);
+            this.itemTypeLabel.Name = "itemTypeLabel";
+            this.itemTypeLabel.Size = new System.Drawing.Size(238, 30);
+            this.itemTypeLabel.TabIndex = 1;
+            this.itemTypeLabel.Text = "Item Type:";
+            this.itemTypeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // itemQualityLabel
+            // 
+            this.itemQualityLabel.AutoSize = true;
+            this.itemQualityLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemQualityLabel.Location = new System.Drawing.Point(491, 0);
+            this.itemQualityLabel.Name = "itemQualityLabel";
+            this.itemQualityLabel.Size = new System.Drawing.Size(238, 30);
+            this.itemQualityLabel.TabIndex = 2;
+            this.itemQualityLabel.Text = "Item Quality (at least):";
+            this.itemQualityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // itemFamilyCombo
+            // 
+            this.itemFamilyCombo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemFamilyCombo.FormattingEnabled = true;
+            this.itemFamilyCombo.Location = new System.Drawing.Point(247, 3);
+            this.itemFamilyCombo.Name = "itemFamilyCombo";
+            this.itemFamilyCombo.Size = new System.Drawing.Size(238, 21);
+            this.itemFamilyCombo.TabIndex = 3;
+            this.itemFamilyCombo.SelectedValueChanged += new System.EventHandler(this.ItemFamilyCombo_SelectedItemChanged);
+            // 
+            // itemTypeCombo
+            // 
+            this.itemTypeCombo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemTypeCombo.FormattingEnabled = true;
+            this.itemTypeCombo.Location = new System.Drawing.Point(247, 63);
+            this.itemTypeCombo.Name = "itemTypeCombo";
+            this.itemTypeCombo.Size = new System.Drawing.Size(238, 21);
+            this.itemTypeCombo.TabIndex = 4;
+            // 
+            // itemQualityCombo
+            // 
+            this.itemQualityCombo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemQualityCombo.FormattingEnabled = true;
+            this.itemQualityCombo.Location = new System.Drawing.Point(735, 3);
+            this.itemQualityCombo.Name = "itemQualityCombo";
+            this.itemQualityCombo.Size = new System.Drawing.Size(241, 21);
+            this.itemQualityCombo.TabIndex = 5;
+            // 
+            // findItemButton
+            // 
+            this.findItemButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.findItemButton.Location = new System.Drawing.Point(491, 63);
+            this.findItemButton.Name = "findItemButton";
+            this.findItemButton.Size = new System.Drawing.Size(238, 24);
+            this.findItemButton.TabIndex = 6;
+            this.findItemButton.Text = "Find items";
+            this.findItemButton.UseVisualStyleBackColor = true;
+            this.findItemButton.Click += new System.EventHandler(this.findItemButton_Click);
+            // 
+            // dataGridViewItems
+            // 
+            this.dataGridViewItems.AllowUserToAddRows = false;
+            this.dataGridViewItems.AllowUserToDeleteRows = false;
+            this.dataGridViewItems.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridViewItems.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.itemFinderPanel.SetColumnSpan(this.dataGridViewItems, 4);
+            this.dataGridViewItems.Location = new System.Drawing.Point(3, 93);
+            this.dataGridViewItems.Name = "dataGridViewItems";
+            this.dataGridViewItems.ReadOnly = true;
+            this.dataGridViewItems.Size = new System.Drawing.Size(973, 293);
+            this.dataGridViewItems.TabIndex = 7;
+            // 
+            // findItemResultLabel
+            // 
+            this.findItemResultLabel.AutoSize = true;
+            this.findItemResultLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.findItemResultLabel.Location = new System.Drawing.Point(735, 60);
+            this.findItemResultLabel.Name = "findItemResultLabel";
+            this.findItemResultLabel.Size = new System.Drawing.Size(241, 30);
+            this.findItemResultLabel.TabIndex = 8;
+            this.findItemResultLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // itemSubFamilyCombo
+            // 
+            this.itemSubFamilyCombo.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.itemSubFamilyCombo.FormattingEnabled = true;
+            this.itemSubFamilyCombo.Location = new System.Drawing.Point(247, 33);
+            this.itemSubFamilyCombo.Name = "itemSubFamilyCombo";
+            this.itemSubFamilyCombo.Size = new System.Drawing.Size(238, 21);
+            this.itemSubFamilyCombo.TabIndex = 10;
+            this.itemSubFamilyCombo.SelectedIndexChanged += new System.EventHandler(this.ItemSubFamilyCombo_SelectedItemChanged);
             // 
             // Main
             // 
@@ -457,6 +636,11 @@
             this.tabCharStats.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewCharStats)).EndInit();
             this.tabCharStatsBottomPanel.ResumeLayout(false);
+            this.tabItemFinder.ResumeLayout(false);
+            this.tabItemFinder.PerformLayout();
+            this.itemFinderPanel.ResumeLayout(false);
+            this.itemFinderPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewItems)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -495,5 +679,18 @@
         private System.Windows.Forms.Label lblTabOverviewKingdomNameValue;
         private System.Windows.Forms.ListBox listBox1;
         private System.Windows.Forms.ToolStripMenuItem initializeGameModelToolStripMenuItem;
+        private System.Windows.Forms.TabPage tabItemFinder;
+        private System.Windows.Forms.TableLayoutPanel itemFinderPanel;
+        private System.Windows.Forms.Label itemFamilyLabel;
+        private System.Windows.Forms.Label itemTypeLabel;
+        private System.Windows.Forms.Label itemQualityLabel;
+        private System.Windows.Forms.ComboBox itemFamilyCombo;
+        private System.Windows.Forms.ComboBox itemTypeCombo;
+        private System.Windows.Forms.ComboBox itemQualityCombo;
+        private System.Windows.Forms.Button findItemButton;
+        private System.Windows.Forms.DataGridView dataGridViewItems;
+        private System.Windows.Forms.Label findItemResultLabel;
+        private System.Windows.Forms.Label itemSubFamilyLabel;
+        private System.Windows.Forms.ComboBox itemSubFamilyCombo;
     }
 }

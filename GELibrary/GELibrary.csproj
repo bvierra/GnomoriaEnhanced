@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ItemFamily.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="GameModel.cs" />
