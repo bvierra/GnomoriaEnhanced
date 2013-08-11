@@ -164,6 +164,7 @@ namespace GELibrary
             Add("Goods", "Stone", ItemID.Hearth);
             Add("Goods", "Stone", ItemID.Mold);
             Add("Goods", "Stone", ItemID.Furnace);
+            Add("Goods", "Stone", ItemID.Trough);
 
             Add("Goods", "Wood", ItemID.RawWood);
             Add("Goods", "Wood", ItemID.Plank);
@@ -173,11 +174,14 @@ namespace GELibrary
             Add("Goods", "Wood", ItemID.BedFrame);
             Add("Goods", "Wood", ItemID.FancyBedFrame);
             Add("Goods", "Wood", ItemID.TrainingDummy);
+            Add("Goods", "Wood", ItemID.Bellows);
+            Add("Goods", "Wood", ItemID.Wheelbarrow);
 
             Add("Goods", "Coal", ItemID.RawCoal);
 
             Add("Goods", "Metal", ItemID.RawOre);
             Add("Goods", "Metal", ItemID.Bar);
+            Add("Goods", "Metal", ItemID.MetalSliver);
             Add("Goods", "Metal", ItemID.Anvil);
             Add("Goods", "Metal", ItemID.CuttingWheel);
             Add("Goods", "Metal", ItemID.File);
@@ -212,10 +216,15 @@ namespace GELibrary
             Add("Goods", "Food", ItemID.Sausage);
             Add("Goods", "Food", ItemID.Bread);
             Add("Goods", "Food", ItemID.Sandwich);
-
+            Add("Goods", "Food", ItemID.Mushroom);
+            Add("Goods", "Food", ItemID.Cheese);
+            Add("Goods", "Food", ItemID.CheeseOmelette);
+            Add("Goods", "Food", ItemID.MushroomOmelette);
+            
             Add("Goods", "Drink", ItemID.Milk);
             Add("Goods", "Drink", ItemID.Wine);
             Add("Goods", "Drink", ItemID.Beer);
+            Add("Goods", "Drink", ItemID.Tea);
 
             Add("Goods", "Plant", ItemID.Seed);
             Add("Goods", "Plant", ItemID.Clipping);
@@ -310,6 +319,14 @@ namespace GELibrary
             Add("Weapons", "Ranged parts", ItemID.CrossbowStock);
             Add("Weapons", "Ranged parts", ItemID.CrossbowBow);
 
+            Add("Weapons", "Worn", ItemID.WornSword);
+            Add("Weapons", "Worn", ItemID.WornHandAxe);
+            Add("Weapons", "Worn", ItemID.WornHammer);
+            Add("Weapons", "Worn", ItemID.WornClaymore);
+            Add("Weapons", "Worn", ItemID.WornBattleAxe);
+            Add("Weapons", "Worn", ItemID.WornWarhammer);
+            Add("Weapons", "Worn", ItemID.WornShield);
+
             Add("Armor", "Metal", ItemID.Helmet);
             Add("Armor", "Metal", ItemID.Breastplate);
             Add("Armor", "Metal", ItemID.Pauldron);
@@ -331,6 +348,13 @@ namespace GELibrary
             Add("Armor", "Parts", ItemID.LeatherArmorPanel);
             Add("Armor", "Parts", ItemID.Padding);
             Add("Armor", "Parts", ItemID.LeatherStrap);
+
+            Add("Armor", "Worn", ItemID.WornHelmet);
+            Add("Armor", "Worn", ItemID.WornBreastplate);
+            Add("Armor", "Worn", ItemID.WornPauldron);
+            Add("Armor", "Worn", ItemID.WornGreave);
+            Add("Armor", "Worn", ItemID.WornGauntlet);
+            Add("Armor", "Worn", ItemID.WornBoot);
 
         }
         #endregion

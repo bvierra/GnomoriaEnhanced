@@ -31,21 +31,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gnomoria, Version=0.8.32.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Gnomoria, Version=0.8.49.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
-      <HintPath>bin\Debug\Gnomoria.exe</HintPath>
+      <HintPath>..\Gnomoria Enhanced\bin\Debug\Gnomoria.exe</HintPath>
     </Reference>
-    <Reference Include="gnomorialib, Version=0.8.32.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="gnomorialib, Version=0.8.49.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\gnomorialib.dll</HintPath>
+      <HintPath>..\Gnomoria Enhanced\bin\Debug\gnomorialib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="SevenZipSharp, Version=0.64.4510.27485, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\SevenZipSharp.dll</HintPath>
+      <HintPath>..\Gnomoria Enhanced\bin\Debug\SevenZipSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -22,6 +22,8 @@ namespace GELibrary
     /// </summary>
     public class GameModel
     {
+        #region Attributes
+
         // Only set after a successfull call to loadGame()
         private GnomanEmpire _gnomanEmpire;
 
@@ -36,14 +38,48 @@ namespace GELibrary
         private string[] attributeNames;
         private CharacterAttributeType[] attributeTypes;
 
+        // Main data tables
+
+        /// <summary>
+        /// Main data table for gnome attributes and skills. One row per gnome, filled with name, profession, current tasks, attributes and skill values.
+        /// Computed by Load_Character_Skills(), accessed by getCharSkills();
+        /// </summary>
         private DataTable mCharSkills;
+
+        /// <summary>
+        /// Average values of character skills. Key is the skill name (that is, the column name in the data table), value is the average.
+        /// </summary>
+        private Dictionary<string, double> mAverageCharSkills;
+
+        /// <summary>
+        /// Standard deviation values of character skills. Key is the skill name (that is, the column name in the data table), value is the stddev.
+        /// </summary>
+        private Dictionary<string, double> mStdDevCharSkills;
+
+        /// <summary>
+        /// Main data table for gnome statistics and skills. One row per gnome, filled with name, statistics.
+        /// Computed by Load_Character_Stats(), accessed by getCharStats();
+        /// </summary>
         private DataTable mCharStats;
+
+        /// <summary>
+        /// Map with some kingdom values. Keys are "KingdomName", "TotalWealth" and "GameDate".
+        /// Computed by Load_Kingdom_Overview(), accessed by getKingdomOverview().
+        /// </summary>
         private Dictionary<string, string> mKingdomOverview;
+
+        #endregion // Attributes
+
+        #region Constructor
 
         // Constructor
         public GameModel()
         {
         }
+
+        #endregion // Constructor
+
+        #region Methods
 
         public DataTable FindItems(IList<ItemID> itemIDs, GameLibrary.ItemQuality quality)
         {
@@ -54,7 +90,6 @@ namespace GELibrary
 
             Dictionary<int, List<Item>> searchResult = null;
             ItemsByQuality resultByQuality = null;
-            ItemsByMaterial resultByMaterial = null;
 
             DataTable itemTable = new DataTable("items");
 
@@ -192,6 +227,55 @@ namespace GELibrary
             attrNamesTemp = null;
         }
 
+        /// <summary>
+        /// After character skills have been loaded, compute the average and standard deviation values for each skill.
+        /// Called by Load_Character_Skills().
+        /// </summary>
+        private void ComputeAverageSkills()
+        {
+            if (mCharSkills == null)
+            {
+                return;
+            }
+
+            // (Re-)Initialize the maps
+            mAverageCharSkills = new Dictionary<string, double>();
+            mStdDevCharSkills = new Dictionary<string, double>();
+
+            foreach (string attrName in attributeNames)
+            {
+                ComputeAverageAndSrdDev(attrName);
+            }
+
+            foreach (string skillName in skillNames)
+            { 
+                ComputeAverageAndSrdDev(skillName);
+            }
+
+        }
+
+        /// <summary>
+        /// Compute the average and standard deviation values of the "attrName" column of the mCharSkills data table, and
+        /// store it in the mAverageCharSkills and mStdDevCharSkills dictionaries.
+        /// </summary>
+        /// <param name="attrName">The name of attribute, that is, the column name</param>
+        private void ComputeAverageAndSrdDev(string attrName)
+        {
+            // Generic query on the mCharSkills DataTable, return list of values for this attribute (= attrName)
+            IEnumerable<Double> valuesQuery = from gnomeRow in mCharSkills.AsEnumerable() select Convert.ToDouble(gnomeRow.Field<Int32>(attrName));
+
+            //Compute the Average      
+            double avg = valuesQuery.Average();
+            //Perform the Sum of (value-avg)^2      
+            double sum = valuesQuery.Sum(d => Math.Pow(d - avg, 2));
+            //Put it all together      
+            double stddev = Math.Sqrt((sum) / (valuesQuery.Count() - 1));
+
+            // Store results
+            mAverageCharSkills.Add(attrName, avg);
+            mStdDevCharSkills.Add(attrName, stddev);
+        }
+
         private void InitializeCharacterSkills()
         {
             // Setup temp array's to be modified and setup correctly
@@ -263,9 +347,14 @@ namespace GELibrary
             skillNamesTemp = null;
         }
 
+        /// <summary>
+        /// Load a saved game file into memory. Must be done at least once before calling the other Load methods.
+        /// </summary>
+        /// <param name="saveGame">The complete file path of the saved game to load.</param>
+        /// <returns>A Result object with a true/false success and an error message.</returns>
         public Result LoadGame(string saveGame)
         {
-            Result result = new Result();
+            Result result = new Result(false, "");
 
             try
             {
@@ -387,13 +476,14 @@ namespace GELibrary
                     mCharSkills.Columns.Add(name, typeof(int));
                 }
 
+                // Now that columns have been defined, iterate through gnomes and add one row per gnome.
                 foreach (var Char in _gnomanEmpire.World.AIDirector.PlayerFaction.Members)
                 {
                     DataRow tmpRow = mCharSkills.NewRow();
                     int col = 0;
-                    tmpRow[col++] = Char.Key;
-                    tmpRow[col++] = Char.Value.Name();
-                    tmpRow[col++] = Char.Value.Title();
+                    tmpRow[col++] = Char.Key; // Gnome ID
+                    tmpRow[col++] = Char.Value.Name(); // Gnome name
+                    tmpRow[col++] = Char.Value.Title(); // Gnome profession
                     if (Char.Value.Job == null)
                     {
                         if (Char.Value.Body.IsSleeping == true)
@@ -429,6 +519,9 @@ namespace GELibrary
                 mCharSkills.Columns[1].ReadOnly = true;
                 mCharSkills.Columns[2].ReadOnly = true;
                 mCharSkills.Columns[3].ReadOnly = true;
+
+                // Compute the average and standard deviation of all attributes and skills
+                ComputeAverageSkills();
 
                 result.Success = true;
             }
@@ -496,6 +589,26 @@ namespace GELibrary
             }
         }
 
+        /// <summary>
+        /// Return the average value associated with an attribute or skill name.
+        /// </summary>
+        /// <param name="attrName">Attribute or skill name, that is, column header in the getCharSkills() data table</param>
+        /// <returns></returns>
+        public double getAverageAttribute(string attrName)
+        {
+            return mAverageCharSkills[attrName];
+        }
+
+        /// <summary>
+        /// Return the standard deviation value associated with an attribute or skill name.
+        /// </summary>
+        /// <param name="attrName">Attribute or skill name, that is, column header in the getCharSkills() data table</param>
+        /// <returns></returns>
+        public double getStdDevAttribute(string attrName)
+        {
+            return mStdDevCharSkills[attrName];
+        }
+
         public DataTable getCharSkills()
         {
             return mCharSkills;
@@ -518,5 +631,22 @@ namespace GELibrary
                 return mKingdomOverview;
             }
         }
+
+        public bool isSkillUsedByProfession(string profTitle, string skillName)
+        {
+            // Find the profession
+            List<Profession> professions = _gnomanEmpire.Fortress.Professions;
+            foreach (Profession profession in professions)
+            {
+                if (profession.Title == profTitle)
+                {
+                    int index = Array.IndexOf(skillNames, skillName);
+                    return profession.AllowedSkills.IsSkillAllowed(skillTypes[index]);
+                }
+            }
+            return false;
+        }
+
+        #endregion // Methods
     }
 }

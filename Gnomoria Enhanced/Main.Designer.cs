@@ -382,6 +382,7 @@
             this.dataGridViewCharSkills.Size = new System.Drawing.Size(971, 385);
             this.dataGridViewCharSkills.TabIndex = 0;
             this.dataGridViewCharSkills.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewCharSkills_CellClick);
+            this.dataGridViewCharSkills.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridViewCharSkills_CellFormatting);
             this.dataGridViewCharSkills.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridViewCharSkills_CellPainting);
             // 
             // tabCharStats

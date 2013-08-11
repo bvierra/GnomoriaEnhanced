@@ -107,10 +107,6 @@ namespace GnomoriaEnhanced
                 openToolStripMenuItem.Enabled = false;
                 LoadGame(optAutoLoadSavedGamePath);
             }
-
-            // Initialize the background FileSystemWatcher in charge of monitoring saved games.
-            InitializeSavedGameWatcher();
-
         }
         #endregion
 
@@ -328,9 +324,6 @@ namespace GnomoriaEnhanced
         /// <param name="savedGame">Saved game file name, relative to the Saved game directory</param>
         private void LoadGame(string savedGame)
         {
-            // Reset status variable
-            _savedGameLoaded = false;
-
             // Stop here if the game model is not initialized yet.
             if (_gameModelInitialized == false)
             {
@@ -371,10 +364,13 @@ namespace GnomoriaEnhanced
             // The worker will update the _savedGameLoaded status variable on success
             if (_savedGameLoaded == true)
             {
-                // Add back the tabs showing game data until a saved game is loaded.
-                tabControl.Controls.Add(this.tabCharSkills);
-                tabControl.Controls.Add(this.tabCharStats);
-                tabControl.Controls.Add(this.tabItemFinder);
+                // Add back the tabs showing game data, unless it has been already
+                if (tabControl.Controls.Contains(this.tabCharSkills) == false)
+                {
+                    tabControl.Controls.Add(this.tabCharSkills);
+                    tabControl.Controls.Add(this.tabCharStats);
+                    tabControl.Controls.Add(this.tabItemFinder);
+                }
 
                 LoadTabPageOverview();
                 LoadTabCharStats();
@@ -568,6 +564,52 @@ namespace GnomoriaEnhanced
         // DataGrid Methods
 
         /// <summary>
+        /// Called when formatting the dataGridViewCharStats table. 
+        /// Does a special handling for attributes and skills, displaying the value over average 
+        /// + 1x standard deviation (or 2x) if a different way.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void dataGridViewCharSkills_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            // Display value over the average + standard deviation in red or bold red.
+            if (e.RowIndex >= 0 && e.ColumnIndex >= _skillColStart)
+            {
+                DataGridViewCell cell = dataGridViewCharSkills.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                string tooltip = "";
+                string attrName = dataGridViewCharSkills.Columns[e.ColumnIndex].HeaderText;
+                double attrValue = Convert.ToDouble(e.Value);
+                double avg = gnomoria.getAverageAttribute(attrName);
+                double stddev = gnomoria.getStdDevAttribute(attrName);
+                Font currentFont = dataGridViewCharSkills.DefaultCellStyle.Font;
+
+                if (attrValue >= (avg + 2 * stddev))
+                {
+                    e.CellStyle.BackColor = Color.MediumSeaGreen;
+                    tooltip = "This value is highly above average (green). ";
+                }
+                else if (attrValue > (avg + stddev))
+                {
+                    e.CellStyle.BackColor = Color.MediumAquamarine; // LightGreen;
+                    tooltip = "This value is signicantly above average (lightgreen). ";
+                }
+
+                if (e.ColumnIndex >= _skillColStart + 7) // Only for skills, not attributes
+                {
+                    string profName = dataGridViewCharSkills.Rows[e.RowIndex].Cells[2].Value.ToString();
+                    if (gnomoria.isSkillUsedByProfession(profName, attrName))
+                    {
+                        e.CellStyle.Font = new Font(currentFont.FontFamily, currentFont.Size, FontStyle.Bold);
+                        tooltip += "This skill is used by the gnome profession (bold font). ";
+                    }
+                }
+
+                if (tooltip.Length > 0)
+                    cell.ToolTipText = tooltip;
+            }
+        }
+
+        /// <summary>
         /// Called when painting the dataGridViewCharSkills table. 
         /// Does a special handling only for column headers containing skill names, and paint the skill name vertically, adjusting the header height if needed.
         /// </summary>
@@ -637,6 +679,7 @@ namespace GnomoriaEnhanced
         {
             if (e.RowIndex == -1 && e.ColumnIndex >= _statColStart)
             {
+                // Special handling of the header row (displaying column headers): print header names vertically
                 e.PaintBackground(e.ClipBounds, true);
                 Rectangle rect = this.dataGridViewCharStats.GetColumnDisplayRectangle(e.ColumnIndex, true);
                 Size titleSize = TextRenderer.MeasureText(e.Value.ToString(), dataGridViewCharSkillsHeaderFont);
