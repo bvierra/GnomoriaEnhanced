@@ -79,12 +79,12 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gnomoria, Version=0.8.49.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Gnomoria, Version=0.8.52.1, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
       <HintPath>bin\Debug\Gnomoria.exe</HintPath>
     </Reference>
-    <Reference Include="gnomorialib, Version=0.8.49.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="gnomorialib, Version=0.8.52.1, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\gnomorialib.dll</HintPath>
     </Reference>
