@@ -207,6 +207,15 @@ namespace GnomoriaEnhanced
             UpdateItemFinderCombos(false); // False = do not update the list of subfamilies, only the item types.
         }
 
+        private void exportcsv_Click(object sender, EventArgs e)
+        {
+            
+            using (StreamWriter writer = new StreamWriter(Directory.GetCurrentDirectory() + "\\Gnome_Stats.csv"))
+            {
+                WriteDataTable(gnomoria.getCharSkills(), writer, true);
+            }
+        }
+
         #endregion
 
         #region Background Workers
@@ -931,6 +940,42 @@ namespace GnomoriaEnhanced
 
         #endregion // Log methods
 
+        #region DataTable Converter
+        /// <summary>
+        /// Convert a datatable into csv format and write it into a textwriter
+        /// </summary>
+        /// <param name="sourceTable">table to parse data from</param>
+        /// <param name="writer">textwriter to fill with data</param>
+        /// <param name="includeHeaders">true if you want to include the column headers</param>
+        public static void WriteDataTable(DataTable sourceTable, TextWriter writer, bool includeHeaders)
+        {
+            if (includeHeaders)
+            {
+                List<string> headerValues = new List<string>();
+                foreach (DataColumn column in sourceTable.Columns)
+                {
+                    headerValues.Add(QuoteValue(column.ColumnName));
+                }
+
+                writer.WriteLine(String.Join(",", headerValues.ToArray()));
+            }
+
+            string[] items = null;
+            foreach (DataRow row in sourceTable.Rows)
+            {
+                items = row.ItemArray.Select(o => QuoteValue(o.ToString())).ToArray();
+                writer.WriteLine(String.Join(",", items));
+            }
+
+            writer.Flush();
+        }
+
+        private static string QuoteValue(string value)
+        {
+            return String.Concat("\"", value.Replace("\"", "\"\""), "\"");
+        }
+        #endregion //DataTable Converter
+
         #region Exit
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -944,5 +989,45 @@ namespace GnomoriaEnhanced
         }
         #endregion
 
+        private void toggleAttributes_Click(object sender, EventArgs e)
+        {
+            toggleColumns(sender, 4, 8);
+        }
+        private void toggleCombatSkills_Click(object sender, EventArgs e)
+        {
+            toggleColumns(sender, 9, 18);
+        }
+
+        private void toggleWorkSkills_Click(object sender, EventArgs e)
+        {
+            toggleColumns(sender, 19, 51);
+        }
+
+        /// <summary>
+        /// Toggles between showing and hiding groups of columns
+        /// </summary>
+        /// <param name="sender">Button modified</param>
+        /// <param name="colStart">First column to toggle visibility</param>
+        /// <param name="colEnd">Last column to toggle visibility</param>
+        private void toggleColumns(object sender, int colStart, int colEnd)
+        {
+            Button toggle = (Button)sender;
+            if (toggle.Text.Substring(0,4) == "Hide")
+            {
+                toggle.Text = "Show" + toggle.Text.Substring(4);
+                for (int x = colStart; x <= colEnd; x++)
+                {
+                    this.dataGridViewCharSkills.Columns[x].Visible = false;
+                }
+            }
+            else
+            {
+                toggle.Text = "Hide" + toggle.Text.Substring(4);
+                for (int x = colStart; x <= colEnd; x++)
+                {
+                    this.dataGridViewCharSkills.Columns[x].Visible = true;
+                }
+            }
+        }
     }
 }
