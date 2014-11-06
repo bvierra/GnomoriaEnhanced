@@ -56,10 +56,6 @@
             this.lblTabOverviewDateValue = new System.Windows.Forms.Label();
             this.listBox1 = new System.Windows.Forms.ListBox();
             this.tabCharSkills = new System.Windows.Forms.TabPage();
-            this.toggleWorkSkills = new System.Windows.Forms.Button();
-            this.toggleCombatSkills = new System.Windows.Forms.Button();
-            this.toggleAttributes = new System.Windows.Forms.Button();
-            this.exportcsv = new System.Windows.Forms.Button();
             this.dataGridViewCharSkills = new System.Windows.Forms.DataGridView();
             this.tabCharStats = new System.Windows.Forms.TabPage();
             this.dataGridViewCharStats = new System.Windows.Forms.DataGridView();
@@ -350,10 +346,6 @@
             // 
             // tabCharSkills
             // 
-            this.tabCharSkills.Controls.Add(this.toggleWorkSkills);
-            this.tabCharSkills.Controls.Add(this.toggleCombatSkills);
-            this.tabCharSkills.Controls.Add(this.toggleAttributes);
-            this.tabCharSkills.Controls.Add(this.exportcsv);
             this.tabCharSkills.Controls.Add(this.dataGridViewCharSkills);
             this.tabCharSkills.Location = new System.Drawing.Point(4, 22);
             this.tabCharSkills.Margin = new System.Windows.Forms.Padding(2);
@@ -364,53 +356,10 @@
             this.tabCharSkills.Text = "Character Skills";
             this.tabCharSkills.UseVisualStyleBackColor = true;
             // 
-            // toggleWorkSkills
-            // 
-            this.toggleWorkSkills.Location = new System.Drawing.Point(322, 3);
-            this.toggleWorkSkills.Name = "toggleWorkSkills";
-            this.toggleWorkSkills.Size = new System.Drawing.Size(106, 23);
-            this.toggleWorkSkills.TabIndex = 2;
-            this.toggleWorkSkills.Text = "Hide Work Skills";
-            this.toggleWorkSkills.UseVisualStyleBackColor = true;
-            this.toggleWorkSkills.Click += new System.EventHandler(this.toggleWorkSkills_Click);
-            // 
-            // toggleCombatSkills
-            // 
-            this.toggleCombatSkills.Location = new System.Drawing.Point(203, 3);
-            this.toggleCombatSkills.Name = "toggleCombatSkills";
-            this.toggleCombatSkills.Size = new System.Drawing.Size(113, 23);
-            this.toggleCombatSkills.TabIndex = 2;
-            this.toggleCombatSkills.Text = "Hide Combat Skills";
-            this.toggleCombatSkills.UseVisualStyleBackColor = true;
-            this.toggleCombatSkills.Click += new System.EventHandler(this.toggleCombatSkills_Click);
-            // 
-            // toggleAttributes
-            // 
-            this.toggleAttributes.Location = new System.Drawing.Point(91, 3);
-            this.toggleAttributes.Name = "toggleAttributes";
-            this.toggleAttributes.Size = new System.Drawing.Size(106, 23);
-            this.toggleAttributes.TabIndex = 2;
-            this.toggleAttributes.Text = "Hide Attributes";
-            this.toggleAttributes.UseVisualStyleBackColor = true;
-            this.toggleAttributes.Click += new System.EventHandler(this.toggleAttributes_Click);
-            // 
-            // exportcsv
-            // 
-            this.exportcsv.Location = new System.Drawing.Point(2, 3);
-            this.exportcsv.Name = "exportcsv";
-            this.exportcsv.Size = new System.Drawing.Size(83, 23);
-            this.exportcsv.TabIndex = 1;
-            this.exportcsv.Text = "Export to CSV";
-            this.exportcsv.UseVisualStyleBackColor = true;
-            this.exportcsv.Click += new System.EventHandler(this.exportcsv_Click);
-            // 
             // dataGridViewCharSkills
             // 
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.dataGridViewCharSkills.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            this.dataGridViewCharSkills.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
             this.dataGridViewCharSkills.BackgroundColor = System.Drawing.SystemColors.Control;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.BottomCenter;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -421,15 +370,16 @@
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridViewCharSkills.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewCharSkills.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewCharSkills.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewCharSkills.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystroke;
-            this.dataGridViewCharSkills.Location = new System.Drawing.Point(2, 31);
+            this.dataGridViewCharSkills.Location = new System.Drawing.Point(2, 2);
             this.dataGridViewCharSkills.Margin = new System.Windows.Forms.Padding(2);
             this.dataGridViewCharSkills.MultiSelect = false;
             this.dataGridViewCharSkills.Name = "dataGridViewCharSkills";
             this.dataGridViewCharSkills.ReadOnly = true;
             this.dataGridViewCharSkills.RowTemplate.Height = 24;
             this.dataGridViewCharSkills.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.dataGridViewCharSkills.Size = new System.Drawing.Size(971, 356);
+            this.dataGridViewCharSkills.Size = new System.Drawing.Size(971, 385);
             this.dataGridViewCharSkills.TabIndex = 0;
             this.dataGridViewCharSkills.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewCharSkills_CellClick);
             this.dataGridViewCharSkills.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridViewCharSkills_CellFormatting);
@@ -452,7 +402,9 @@
             // 
             this.dataGridViewCharStats.AllowUserToAddRows = false;
             this.dataGridViewCharStats.AllowUserToDeleteRows = false;
+            this.dataGridViewCharStats.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridViewCharStats.BackgroundColor = System.Drawing.SystemColors.Control;
+            this.dataGridViewCharStats.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewCharStats.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewCharStats.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewCharStats.Location = new System.Drawing.Point(2, 2);
@@ -741,9 +693,5 @@
         private System.Windows.Forms.Label findItemResultLabel;
         private System.Windows.Forms.Label itemSubFamilyLabel;
         private System.Windows.Forms.ComboBox itemSubFamilyCombo;
-        private System.Windows.Forms.Button exportcsv;
-        private System.Windows.Forms.Button toggleWorkSkills;
-        private System.Windows.Forms.Button toggleCombatSkills;
-        private System.Windows.Forms.Button toggleAttributes;
     }
 }
