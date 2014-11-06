@@ -34,18 +34,18 @@
     <Reference Include="Gnomoria, Version=0.8.52.1, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
-      <HintPath>bin\Debug\Gnomoria.exe</HintPath>
+      <HintPath>D:\SteamLibrary\SteamApps\common\Gnomoria\Gnomoria.exe</HintPath>
     </Reference>
     <Reference Include="gnomorialib, Version=0.8.52.1, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\gnomorialib.dll</HintPath>
+      <HintPath>D:\SteamLibrary\SteamApps\common\Gnomoria\gnomorialib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="SevenZipSharp, Version=0.64.4510.27485, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\SevenZipSharp.dll</HintPath>
+      <HintPath>D:\SteamLibrary\SteamApps\common\Gnomoria\SevenZipSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
