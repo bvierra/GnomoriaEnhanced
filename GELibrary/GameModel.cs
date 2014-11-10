@@ -632,6 +632,13 @@ namespace GELibrary
             }
         }
 
+        public bool isSkillUsedByGnome(uint gnomeKey, string skillName)
+        {
+            Profession profession = _gnomanEmpire.World.AIDirector.PlayerFaction.Members[gnomeKey].Mind.Profession;
+            int index = Array.IndexOf(skillNames, skillName);
+            return profession.AllowedSkills.IsSkillAllowed(skillTypes[index]);
+        }
+
         public bool isSkillUsedByProfession(string profTitle, string skillName)
         {
             // Find the profession

@@ -595,21 +595,25 @@ namespace GnomoriaEnhanced
                 if (attrValue >= (avg + 2 * stddev))
                 {
                     e.CellStyle.BackColor = Color.MediumSeaGreen;
-                    tooltip = "This value is highly above average (green). ";
+                    tooltip += "This value is greatly above average (green background).\n";
                 }
                 else if (attrValue > (avg + stddev))
                 {
                     e.CellStyle.BackColor = Color.MediumAquamarine; // LightGreen;
-                    tooltip = "This value is signicantly above average (lightgreen). ";
+                    tooltip += "This value is moderately above average (light green background).\n";
                 }
 
                 if (e.ColumnIndex >= _skillColStart + 7) // Only for skills, not attributes
                 {
                     string profName = dataGridViewCharSkills.Rows[e.RowIndex].Cells[2].Value.ToString();
-                    if (gnomoria.isSkillUsedByProfession(profName, attrName))
+                    uint gnomeKey = uint.Parse(dataGridViewCharSkills.Rows[e.RowIndex].Cells[0].Value.ToString());
+                    //if (gnomoria.isSkillUsedByProfession(profName, attrName))
+                    
+                    if (gnomoria.isSkillUsedByGnome(gnomeKey,attrName))
                     {
-                        e.CellStyle.Font = new Font(currentFont.FontFamily, currentFont.Size, FontStyle.Bold);
-                        tooltip += "This skill is used by the gnome profession (bold font). ";
+                        e.CellStyle.Font = new Font(currentFont.FontFamily, currentFont.Size + 1, FontStyle.Bold);
+                        e.CellStyle.ForeColor = Color.Blue;
+                        tooltip += "This skill is used by this gnome's profession (Bold and blue text).\n";
                     }
                 }
 
