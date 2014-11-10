@@ -65,9 +65,7 @@
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
-  </PropertyGroup>
+  <PropertyGroup />
   <PropertyGroup>
     <SignManifests>false</SignManifests>
   </PropertyGroup>
@@ -77,13 +75,16 @@
   <PropertyGroup>
     <StartupObject>GnomoriaEnhanced.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gnomoria, Version=0.8.32.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Gnomoria, Version=0.8.52.1, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <ExecutableExtension>.exe</ExecutableExtension>
       <HintPath>bin\Debug\Gnomoria.exe</HintPath>
     </Reference>
-    <Reference Include="gnomorialib, Version=0.8.32.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="gnomorialib, Version=0.8.52.1, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\gnomorialib.dll</HintPath>
     </Reference>
@@ -154,12 +155,12 @@
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 et x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

@@ -8,11 +8,11 @@ namespace GELibrary
     public class Result
     {
         /// <summary>
-        /// Default constructor, success = true, ErrorMessage = ""
+        /// Default constructor, success = false, ErrorMessage = ""
         /// </summary>
         public Result()
         {
-            Success = true;
+            Success = false;
             ErrorMessage = "";
         }
         /// <summary>
